@@ -7,7 +7,7 @@ mkdir env
 ```
 and 
 ```
-mkdir env
+python3 -m venv env
 ```
 in the commandline. Enter the virtual environment by running
 ```
