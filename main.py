@@ -1,15 +1,13 @@
-import sys 
-sys.path.append('./code_ds_hdp_hmm/code/')
-
-from simulate_data import *
 import os
 import numpy as np
 from numpy.random import randn, seed, multinomial
-from simulate_data import sample_same_trans, sample_same_stick
-from gibbs_gaussian_efox import *
-from permute import compute_cost
-from util import sample_pi_efox, compute_log_marginal_lik_gaussian
+
 import matplotlib.pyplot as plt
+
+from src.simulate_data import sample_same_trans, sample_same_stick
+from src.gibbs_gaussian_efox import *
+from src.permute import compute_cost
+from src.util import sample_pi_efox, compute_log_marginal_lik_gaussian
 
 
 seed(42)
@@ -28,16 +26,12 @@ def generate_data(file_path, nof_states, p_1, p_2, p_3, p_4, steps):
 
 
 def main():
-    here = os.getcwd()
-    data_path = here + "/data"
-    plot_path = here + "/plots"
+    root = os.getcwd()
+    data_path = root + "/io/data"
+    plot_path = root + "/io/plots"
+    results_path = root + "/io/results"
+
     filename = "2_states_test"
-
-    if not os.path.exists(data_path):
-        os.mkdir(data_path)
-
-    if not os.path.exists(plot_path):
-        os.mkdir(plot_path)
 
     args = {"nof_states": 2,
             "p_1": 0.96,
@@ -50,23 +44,19 @@ def main():
 
     generate_data(file_path, **args)
 
-    #### ab hier garbage ####
-
     iters = 10
-    sigma0 = 0
+    sigma0 = 0.1
     alpha0_a_pri = 1
     alpha0_b_pri = 0.01
     gamma0_a_pri = 2
     gamma0_b_pri = 1
 
-    path = "./code_ds_hdp_hmm/data/fix_8states_multinomial_same_trans_diff_stick.npz"
-    path_test = "./code_ds_hdp_hmm/data/test_fix_8states_multinomial_same_trans_diff_stick.npz"
+    path = data_path + "/fix_8states_gaussian_same_trans_diff_stick.npz"
+    path_test = data_path + "/test_fix_8states_gaussian_same_trans_diff_stick.npz"
 
     ## load data
-    # dat = np.load(data_path + "/" + filename +".npz")
     dat = np.load(path)
     zt_real, yt_real = dat['zt'], dat['yt']  ## yt_real & zt_real are 1d length T1 numpy array
-    # test_dat = np.load(data_path + "/" + filename +".npz")
     test_dat = np.load(path_test)
     yt_test = test_dat['yt']  ## yt_test is 1d length T2 numpy array
 
@@ -79,7 +69,7 @@ def main():
     fig, ax = plt.subplots()
     ax.set_title('yt_real')
     ax.set_xlabel('t')
-    ax.plot(zt_real, 'tab:blue')
+    ax.plot(yt_real, 'tab:blue')
     fig.savefig(plot_path + "/yt_real.eps", format='eps')
 
     T = len(yt_real)
@@ -131,22 +121,17 @@ def main():
         zt_sample_permute.append(tmp.copy())
         mismatch_vec.append((tmp != zt_real).sum())
 
-    results_path = here + "/results"
-
-    if not os.path.exists(results_path):
-        os.mkdir(results_path)
-
     np.savez(results_path + "/" + filename + "_full_bayesian_gibbs_gaussian_reg.npz", zt=zt_sample,
              hyper=hyperparam_sample,
              hamming=mismatch_vec, zt_permute=zt_sample_permute, loglik=loglik_test_sample)
 
     test = np.load(results_path + "/" + filename + "_full_bayesian_gibbs_gaussian_reg.npz")
- 
+
     fig, ax = plt.subplots()
     ax.set_title('zt_test')
     ax.set_xlabel('t')
-    ax.plot(test['zt'], 'tab:blue')
-    fig.savefig(plot_path + "/zt_real.eps", format='eps')
+    ax.plot(np.squeeze(test['zt']), 'tab:blue')
+    fig.savefig(plot_path + "/zt_test.eps", format='eps')
 
 
 if __name__ == "__main__":

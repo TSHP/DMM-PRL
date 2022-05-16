@@ -1,0 +1,1 @@
+# Should include all global constants such as datapaths and other constant stuff
