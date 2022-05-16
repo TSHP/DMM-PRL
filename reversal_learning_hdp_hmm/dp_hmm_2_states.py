@@ -30,10 +30,14 @@ def generate_data(file_path, nof_states, p_1, p_2, p_3, p_4, steps):
 def main():
     here = os.getcwd()
     data_path = here + "/data"
+    plot_path = here + "/plots"
     filename = "2_states_test"
 
     if not os.path.exists(data_path):
         os.mkdir(data_path)
+
+    if not os.path.exists(plot_path):
+        os.mkdir(plot_path)
 
     args = {"nof_states": 2,
             "p_1": 0.96,
@@ -68,7 +72,7 @@ def main():
 
     plt.plot(zt_real)
     plt.plot(yt_real)
-    plt.show()
+    plt.savefig(plot_path + "/zt_yt_real.eps", format='eps')
 
     T = len(yt_real)
     mu0 = np.mean(yt_real)
@@ -108,7 +112,6 @@ def main():
             hyperparam_sample.append(np.array([alpha0, gamma0]))
 
     ## permute result
-
     mismatch_vec = []
     zt_sample_permute = []
     K_real = len(np.unique(zt_real))
