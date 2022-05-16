@@ -1,6 +1,7 @@
-# project_group_1
+# FS22_TN_Project
 
-This repository contains all code etc. for project work for the Translational Neuromodeling Lecture.
+## Setting up the project
+
 
 ## Getting started
 
@@ -15,14 +16,14 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 
 ```
 cd existing_repo
-git remote add origin https://gitlab.ethz.ch/tn_projects_fs2022/project_group_1.git
+git remote add origin https://gitlab.ethz.ch/krasnopk/fs22_tn_project.git
 git branch -M main
 git push -uf origin main
 ```
 
 ## Integrate with your tools
 
-- [ ] [Set up project integrations](https://gitlab.ethz.ch/tn_projects_fs2022/project_group_1/-/settings/integrations)
+- [ ] [Set up project integrations](https://gitlab.ethz.ch/krasnopk/fs22_tn_project/-/settings/integrations)
 
 ## Collaborate with your team
 
