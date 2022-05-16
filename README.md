@@ -1,13 +1,22 @@
 # FS22_TN_Project
 
 ## Setting up the project
-
-
-## Getting started
-
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Create virtual environment by running
+```
+mkdir env
+```
+and 
+```
+mkdir env
+```
+in the commandline. Enter the virtual environment by running
+```
+source env/bin/activate
+```
+Install all required libraries by running
+```
+pip3 install -r requirements.txt
+```
 
 ## Add your files
 

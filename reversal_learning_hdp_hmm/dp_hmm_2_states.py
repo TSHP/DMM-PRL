@@ -1,4 +1,7 @@
-from code_ds_hdp_hmm.code import simulate_data
+import sys 
+sys.path.append('./code_ds_hdp_hmm/code/')
+
+from simulate_data import *
 import os
 import numpy as np
 from numpy.random import randn, seed, multinomial
@@ -52,8 +55,8 @@ def main():
     gamma0_a_pri = 2
     gamma0_b_pri = 1
 
-    path = "/Users/Kasia/PycharmProjects/fs22_tn_project/code_ds_hdp_hmm/data/fix_8states_multinomial_same_trans_diff_stick.npz"
-    path_test = "/Users/Kasia/PycharmProjects/fs22_tn_project/code_ds_hdp_hmm/data/test_fix_8states_multinomial_same_trans_diff_stick.npz"
+    path = "./code_ds_hdp_hmm/data/fix_8states_multinomial_same_trans_diff_stick.npz"
+    path_test = "./code_ds_hdp_hmm/data/test_fix_8states_multinomial_same_trans_diff_stick.npz"
 
     ## load data
     # dat = np.load(data_path + "/" + filename +".npz")
