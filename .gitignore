@@ -1,4 +1,5 @@
 env
 data
 plots
+results
 __pycache__
