@@ -12,7 +12,7 @@ from util import sample_pi_efox, compute_log_marginal_lik_gaussian
 import matplotlib.pyplot as plt
 
 
-# seed(42)
+seed(42)
 
 def generate_data(file_path, nof_states, p_1, p_2, p_3, p_4, steps):
     zt_real, wt_real, kappa_real, trans_vec = sample_same_trans(K_real=nof_states, p_real1=p_1, p_real2=p_2,
@@ -70,9 +70,17 @@ def main():
     test_dat = np.load(path_test)
     yt_test = test_dat['yt']  ## yt_test is 1d length T2 numpy array
 
-    plt.plot(zt_real)
-    plt.plot(yt_real)
-    plt.savefig(plot_path + "/zt_yt_real.eps", format='eps')
+    fig, ax = plt.subplots()
+    ax.set_title('zt_real')
+    ax.set_xlabel('t')
+    ax.plot(zt_real, 'tab:blue')
+    fig.savefig(plot_path + "/zt_real.eps", format='eps')
+
+    fig, ax = plt.subplots()
+    ax.set_title('yt_real')
+    ax.set_xlabel('t')
+    ax.plot(zt_real, 'tab:blue')
+    fig.savefig(plot_path + "/yt_real.eps", format='eps')
 
     T = len(yt_real)
     mu0 = np.mean(yt_real)
@@ -123,9 +131,6 @@ def main():
         zt_sample_permute.append(tmp.copy())
         mismatch_vec.append((tmp != zt_real).sum())
 
-    ## save results
-    # seed = int((int(sys.argv[1])-1)%10)
-
     results_path = here + "/results"
 
     if not os.path.exists(results_path):
@@ -136,8 +141,12 @@ def main():
              hamming=mismatch_vec, zt_permute=zt_sample_permute, loglik=loglik_test_sample)
 
     test = np.load(results_path + "/" + filename + "_full_bayesian_gibbs_gaussian_reg.npz")
-    plt.plot(test['zt'])
-    plt.show()
+ 
+    fig, ax = plt.subplots()
+    ax.set_title('zt_test')
+    ax.set_xlabel('t')
+    ax.plot(test['zt'], 'tab:blue')
+    fig.savefig(plot_path + "/zt_real.eps", format='eps')
 
 
 if __name__ == "__main__":
