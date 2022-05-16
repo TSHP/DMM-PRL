@@ -12,7 +12,7 @@ from util import sample_pi_efox, compute_log_marginal_lik_gaussian
 import matplotlib.pyplot as plt
 
 
-# seed(42)
+seed(42)
 
 def generate_data(file_path, nof_states, p_1, p_2, p_3, p_4, steps):
     zt_real, wt_real, kappa_real, trans_vec = sample_same_trans(K_real=nof_states, p_real1=p_1, p_real2=p_2,
@@ -53,14 +53,14 @@ def main():
     #### ab hier garbage ####
 
     iters = 10
-    sigma0 = 0
+    sigma0 = 0.1
     alpha0_a_pri = 1
     alpha0_b_pri = 0.01
     gamma0_a_pri = 2
     gamma0_b_pri = 1
 
-    path = "./code_ds_hdp_hmm/data/fix_8states_multinomial_same_trans_diff_stick.npz"
-    path_test = "./code_ds_hdp_hmm/data/test_fix_8states_multinomial_same_trans_diff_stick.npz"
+    path = "/Users/Kasia/PycharmProjects/project_group_1/code_ds_hdp_hmm/data/test_fix_8states_gaussian_same_trans_diff_stick.npz"
+    path_test = "/Users/Kasia/PycharmProjects/project_group_1/code_ds_hdp_hmm/data/test_fix_8states_multinomial_same_trans_diff_stick.npz"
 
     ## load data
     # dat = np.load(data_path + "/" + filename +".npz")
