@@ -11,8 +11,8 @@ from src.util import sample_pi_efox, compute_log_marginal_lik_gaussian
 
 seed(42)
 
-#
-# def generate_data(file_path, nof_states, p_1, p_2, p_3, p_4, steps):
+
+# def generate_data_old(file_path, nof_states, p_1=1, p_2=0, p_3=1, p_4=0, steps=50):
 #     zt_real, wt_real, kappa_real, trans_vec = sample_same_trans(K_real=nof_states, p_real1=p_1, p_real2=p_2,
 #                                                                 p_real3=p_3, p_real4=p_4, T=steps)
 #     dic_real = np.diag(np.ones(2)) * 0.7 + (0.3 / 2)
@@ -25,41 +25,45 @@ seed(42)
 #              yt=yt_real, dic=dic_real, trans_mat=trans_mat)
 
 
-def generate_data(file_path, args, task="rl"):
-
+def generate_data(file_path, args):
     nof_states = 2
-    steps_0=50
-    steps_1=50
     p_1, p_2, p_3, p_4, p_y, steps, states_ratio = args
-    dic_real = np.vstack(([p_y, 1 - p_y], [1 - p_y, p_y]))
+    dic_real = np.array([[p_y, 1 - p_y], [1 - p_y, p_y]])
     dic_real = dic_real / dic_real.sum(axis=1, keepdims=True)
 
+    steps_per_state = [int(steps * states_ratio), int(steps * (1 - states_ratio))]
+    zt_real, yt_real, wt_real, kappa_real, trans_vec, trans_mat = [[] for i in range(6)]
+    p = [[p_1, p_2, p_3, p_4], [p_2, p_1, p_3, p_4]]
 
-    zt_real_0, wt_real_0, kappa_real_0, trans_vec_0 = sample_same_trans(K_real=nof_states, p_real1=p_1, p_real2=p_2,
-                                                                        p_real3=p_3, p_real4=p_4, T=steps_0)
-    yt_real_0 = np.array([multinomial(1, dic_real[zt_real_0][ii]) for ii in range(len(zt_real_0))])
-    trans_mat_0 = trans_vec_0 * np.expand_dims(1 - kappa_real_0, axis=-1) + np.diag(
-        kappa_real_0)
+    for state in range(nof_states):
+        steps = steps_per_state[state]
+        p_1, p_2, p_3, p_4 = p[state]
+        zt_real_tmp, wt_real_tmp, kappa_real_tmp, trans_vec_tmp = sample_same_trans(K_real=nof_states, p_real1=p_1,
+                                                                                    p_real2=p_2,
+                                                                                    p_real3=p_3, p_real4=p_4,
+                                                                                    T=steps)
 
-    zt_real_1, wt_real_1, kappa_real_1, trans_vec_1 = sample_same_trans(K_real=nof_states, p_real1=p_2, p_real2=p_1,
-                                                                        p_real3=p_3, p_real4=p_4, T=steps_1)
-    yt_real_1 = np.array([multinomial(1, dic_real[zt_real_1][ii]) for ii in range(len(zt_real_1))])
-    trans_mat_1 = trans_vec_1 * np.expand_dims(1 - kappa_real_1, axis=-1) + np.diag(
-        kappa_real_1)
+        zt_real.append(zt_real_tmp)
+        wt_real.append(wt_real_tmp)
+        kappa_real.append(kappa_real_tmp)
+        trans_vec.append(trans_vec_tmp)
 
-    zt_real = np.concatenate((zt_real_0, zt_real_1))
-    wt_real = np.concatenate((wt_real_0, wt_real_1))
+        yt_real_tmp = np.array([multinomial(1, dic_real[zt_real_tmp][ii]) for ii in range(len(zt_real_tmp))])
+        # trans_mat_tmp = trans_vec_tmp * np.expand_dims(1 - kappa_real_tmp, axis=-1) + np.diag(
+        # kappa_real_tmp)
 
-    kappa_real = {0: kappa_real_0,
-                  1: kappa_real_1}
+        yt_real.append(yt_real_tmp[:, 1])
+        # trans_mat.append(trans_mat_tmp)
 
-    yt_real = np.concatenate((yt_real_0[:, 1], yt_real_1[:, 1]))
+    # np.savez(file_path, zt=flatten(zt_real), wt=flatten(wt_real), kappa=flatten(kappa_real),
+    #          yt=flatten(yt_real), dic=dic_real, trans_mat=flatten(trans_mat))
+    np.savez(file_path, zt=flatten(zt_real), wt=flatten(wt_real), kappa=flatten(kappa_real),
+             yt=flatten(yt_real), dic=dic_real)
 
-    trans_mat = {0: trans_mat_0,
-                 1: trans_mat_1}
 
-    np.savez(file_path, zt=zt_real, wt=wt_real, kappa=kappa_real,
-             yt=yt_real, dic=dic_real, trans_mat=trans_mat)
+
+def flatten(list):
+    return [item for sublist in list for item in sublist]
 
 
 def save_plots(plot_path, zt_real, yt_real, zt_test):
