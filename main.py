@@ -51,8 +51,8 @@ def generate_data(file_path, args):
         yt_real_tmp = np.array([multinomial(1, dic_real[zt_real_tmp][ii]) for ii in range(len(zt_real_tmp))])
         # trans_mat_tmp = trans_vec_tmp * np.expand_dims(1 - kappa_real_tmp, axis=-1) + np.diag(
         # kappa_real_tmp)
-
-        yt_real.append(yt_real_tmp[:, 1])
+        if len(yt_real_tmp) != 0:
+            yt_real.append(yt_real_tmp[:, 1])
         # trans_mat.append(trans_mat_tmp)
 
     # np.savez(file_path, zt=flatten(zt_real), wt=flatten(wt_real), kappa=flatten(kappa_real),
@@ -153,7 +153,7 @@ def main():
 
     p_y = 0.85  # P(observing real hidden state)
     steps = 100
-    states_ratio = 0.5
+    states_ratio = 1
     args = [p_1, p_2, p_3, p_4, p_y, steps, states_ratio]
 
     generate_data(file_path, args)
