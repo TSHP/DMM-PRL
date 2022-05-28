@@ -18,8 +18,8 @@ module Eval
 
         model_names = unique!([split(file, '_')[4] for file in data_files])
 
-        for model_name in model_names:
-            filename = "prl_urn_probs_"
+        for model_name in model_names
+            filename = "prl_urn_probs_"*model_name
             draws_df = DataFrame(CSV.File("./io/results/"*filename*"_draws.csv"))
             probs_df = DataFrame(CSV.File("./io/results/"*filename*"_probs.csv"))
             eval_prl_df = DataFrame()
