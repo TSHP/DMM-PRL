@@ -91,6 +91,7 @@ for  (index, M) in enumerate([M1, M2])
         push!(probs, prob)
         push!(standard_deviations, std)
     end
+    # Dict("A"=>1, "B"=>2)
     label = "mu = $(mps[index])"
     p1 = plot(probs, labels = label, xlabel = "Number of drawn beads", ylabel = "Estimated probability", linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
     push!(plots, p1)

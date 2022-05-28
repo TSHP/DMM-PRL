@@ -5,7 +5,7 @@ from numpy.random import randn, seed, multinomial
 import matplotlib.pyplot as plt
 
 from src.simulate_data import sample_same_trans, sample_same_stick
-from src.gibbs_gaussian_efox import *
+from src.gibbs_gaussian import *
 from src.permute import compute_cost
 from src.util import sample_pi_efox, compute_log_marginal_lik_gaussian
 
@@ -26,10 +26,9 @@ def generate_data(file_path, nof_states, p_1, p_2, p_3, p_4, steps):
 
 
 def main():
-    root = os.getcwd()
-    data_path = root + "/io/data"
-    plot_path = root + "/io/plots"
-    results_path = root + "/io/results"
+    data_path = "../io/data"
+    plot_path = "../io/plots"
+    results_path = "../io/results"
 
     filename = "2_states_test"
 
@@ -132,6 +131,14 @@ def main():
     ax.set_xlabel('t')
     ax.plot(np.squeeze(test['zt']), 'tab:blue')
     fig.savefig(plot_path + "/zt_test.eps", format='eps')
+
+    print(test['loglik'])
+    
+    fig, ax = plt.subplots()
+    ax.set_title('yt_test')
+    ax.set_xlabel('t')
+    ax.plot(np.squeeze(test['loglik']), 'tab:blue')
+    fig.savefig(plot_path + "/loglik_test.eps", format='eps')
 
 
 if __name__ == "__main__":
