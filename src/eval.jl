@@ -1,13 +1,54 @@
 module Eval
     using CSV, DataFrames
+    using StatsPlots
 
     struct EvalParams
-        correct_decisions
-        valid_lose_shift
-        valid_lose_stay
-        valid_win_shift
-        invalid_lose_shift
-        invalid_win_shift
+        correct_decisions::UInt16
+        valid_lose_shift::UInt16
+        valid_lose_stay::UInt16
+        valid_win_shift::UInt16
+        invalid_lose_shift::UInt16
+        invalid_win_shift::UInt16
+    end
+
+    function make_bar_plot()
+        results_folder = "./io/results/"
+
+        data_files = [file for file in readdir(results_folder) if occursin("eval", file)]
+
+        results_df = DataFrame()
+        for file in data_files
+            tmp = DataFrame(CSV.File(results_folder*file))
+            results_df = vcat(results_df, tmp)
+        end
+
+        categories = names(results_df)[2:7]
+        model_names = results_df[!,"model_name"]
+        model_names = unique!(deepcopy(model_names))
+
+        mean = []
+        median = []
+
+        for name in model_names
+            tmp = results_df[findall(in([name]), results_df.model_name), :]
+            push!(mean, describe(tmp)[!, "mean"][2:7])
+            push!(median, describe(tmp)[!, "median"][2:7])
+        end
+
+        if length(model_names) == 2
+            ticklabel = string.(categories)
+            label1 = model_names[1]
+            label2 = model_names[2]
+            p_mean = groupedbar([mean[2] mean[1]], bar_position = :dodge, bar_width=0.7, xticks=(1:6, ticklabel), xrotation=20, labels = [label2 label1])
+            title!("Mean")
+            savefig(p_mean, "./io/plots/prl_urn_probs_eval_mean.png")
+            p_median = groupedbar([median[2] median[1]], bar_position = :dodge, bar_width=0.7, xticks=(1:6, ticklabel), xrotation=20, labels = [label2 label1])
+            title!("Median")
+            savefig(p_median, "./io/plots/prl_urn_probs_eval_median.png")
+        else
+            throw("Bar plot comparing more than 2 models not implemented")
+        end
+
     end
 
     function evaluate_prl(experiment="0", decision_bnd=[0.5,0.5])
@@ -73,14 +114,17 @@ module Eval
                     for field in fieldnames(typeof(eval_params))
                         eval_prl_df[!, string(field)] = [getfield(eval_params, field)]
                     end
+                    eval_prl_df[!, :model_name] = [model_name]
                 else
                     values = [getfield(eval_params, field) for field in fieldnames(typeof(eval_params))]
-                    values = [it;values]
+                    values = [it;values;model_name]
                     push!(eval_prl_df, values)
+                    
                 end
 
                 CSV.write("./io/results/"*filename*"_eval.csv", eval_prl_df)
             end
         end
+        make_bar_plot()
     end
 end
