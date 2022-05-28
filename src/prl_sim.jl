@@ -13,12 +13,10 @@ module PRL
         m
     end
 
-    struct Eval
-        valid_lose_shift
-        valid_lose_stay
-        valid_win_shift
-        invalid_lose_shift
-        invalid_win_shift
+    struct Results
+        draws
+        probabilities
+        std_deviations
     end
    
     function generate_bead_seq(method="0")
@@ -32,13 +30,19 @@ module PRL
                 draws = it%2 == 0 ? rand(urn_0, n_draws) : rand(urn_1, n_draws)
                 seq = [seq; draws]
             end
+        elseif method == "test"
+            n_draws=1
+            for it in 1:3
+                draws = it%2 == 0 ? rand(urn_0, n_draws) : rand(urn_1, n_draws)
+                seq = [seq; draws]
+            end
         end
         return seq
     end
 
     function get_urn_probs(draws, n_history)
         urn_probs = []
-        for draw in 1:length(draws)
+        for draw in 2:length(draws)
             lower = draw > n_history ? draw - n_history : 1
             push!(urn_probs, mean(draws[lower:draw]))
         end
@@ -60,45 +64,11 @@ module PRL
         png("./io/plots/"*filename*".png")
     end
 
-    function evaluate(probs, draws, experiment="0", decision_bnd=[0.5,0.5])
-        # probs=[1,0.5,0.3,0.1,0]
-        # draws=generate_bead_seq(experiment)
-        probs
-        if experiment=="0"
-            valid_lose_shift = 0
-            valid_lose_stay = 0
-            valid_win_shift = 0
-            invalid_lose_shift = 0
-            invalid_win_shift = 0
-            decisions = deepcopy(probs)
-            decisions[decisions.<decision_bnd[1]] .= 0
-            decisions[decisions.>=decision_bnd[2]] .= 1
+    function save_results(filename, eval, params)
 
-            correct = [ones((1,10)); zeros((1,10)); ones((1,10))]
-
-            @assert(length(correct)-1==length(decisions))
-
-            for (idx, d) in enumerate(decisions)
-                if idx == 29
-                    break
-                elseif correct[idx] == draws[idx] && correct[idx] != d && decisions[idx+1] != d # draw was the correct color, model made incorrect guess and changed in next step
-                    valid_lose_shift += 1
-                elseif correct[idx] == draws[idx] && correct[idx] != d && decisions[idx+1] == d # draw was the correct color, model made incorrect guess and did not change in next step
-                    valid_lose_stay += 1
-                elseif correct[idx] == draws[idx] && correct[idx] == d && decisions[idx+1] != d # draw was the correct color, model made correct guess and changed in next step
-                    valid_win_shift += 1
-                elseif correct[idx] != draws[idx] && correct[idx] != d && decisions[idx+1] != d # draw was not the correct color, model made incorrect guess and changed in next step
-                    invalid_lose_shift += 1
-                elseif correct[idx] != draws[idx] && correct[idx] == d && decisions[idx+1] != d # draw was not the correct color, model made correct guess and changed in next step
-                    invalid_win_shift += 1
-                end
-            end
-            return (valid_lose_shift, valid_lose_stay, valid_win_shift, invalid_lose_shift, invalid_win_shift)
-        end
     end
 
-    function run_experiment(params, filename)
-        seed=42
+    function run_experiment(params, filename, seed, output=false, test=false)
         Random.seed!(seed)
         n_steps=10
         n_history=5
@@ -106,13 +76,17 @@ module PRL
         # Generate beads, probabilities and log odds from sequence
         M = GMM.Model(pm = params.pm, mp = params.mp, pp = params.pp, alpha = params.alpha)
 
-        draws = generate_bead_seq()
+        if test
+            draws = generate_bead_seq("test")
+        else
+            draws = generate_bead_seq()
+        end
+        pushfirst!(draws, 0)
+        pushfirst!(draws, 1)
+
         urn_probs = get_urn_probs(draws, n_history)
         urn_log_odds = [log(urn_probs[i] / (1 - urn_probs[i])) for i in 1:length(urn_probs)]
         clean_log_odds!(urn_log_odds)
-
-        pushfirst!(draws, 0)
-        pushfirst!(draws, 1)
         
         probs = []
         std_devs = []
@@ -120,6 +94,9 @@ module PRL
         plots = []
 
         # start simulation
+        if output
+            print("Starting simulation...\n")
+        end
         for draw in 2:length(urn_log_odds)
             comps_init = []
 
@@ -138,6 +115,10 @@ module PRL
 
             # Draw new bead from urn
             xnew = [urn_log_odds[draw]]
+
+            if output
+                @show draw
+            end
 
             znew, comps = GMM.init_mixture(xnew, xinit, zinit, deepcopy(comps_init), M)
             x = [xinit; xnew]; z = [zinit; znew]
@@ -164,7 +145,6 @@ module PRL
 
         save_plots(draws, plots, filename)
 
-        valid_lose_shift, valid_lose_stay, valid_win_shift, invalid_lose_shift, invalid_win_shift = evaluate(probs, draws)
-        return Eval(valid_lose_shift, valid_lose_stay, valid_win_shift, invalid_lose_shift, invalid_win_shift)
+        return Results(draws, probs, std_devs)
     end
 end

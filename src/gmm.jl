@@ -83,7 +83,7 @@ module GMM
         m = M.m
         alph = M.alpha[1]
         for iter in 1:n_steps
-            @show iter
+            # @show iter
             # @show comps[1].n
             ## iterate over observations
             inds = shuffle(1:length(x))
