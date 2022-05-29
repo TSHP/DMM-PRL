@@ -28,12 +28,14 @@ module PRL
         n_draws=10
 
         if method == "3p_10t"
+            # 3 phases, draw from different urn each phase
             for it in 1:3
                 draws = it%2 == 0 ? rand(urn_0, n_draws) : rand(urn_1, n_draws)
                 seq = [seq; draws]
             end
         elseif method=="cools"
-            seq = phase%2 == 0 ? rand(urn_0, n_draws) : rand(urn_1, n_draws) # draw from urn 0 and 1 in alternating fashion
+            # 3 phases, draw from different urn each phase
+            seq = phase%2 == 0 ? rand(urn_0, n_draws) : rand(urn_1, n_draws) 
         elseif method == "test"
             n_draws=1
             for it in 1:3
@@ -135,6 +137,7 @@ module PRL
         return (n_phases, max_iter)
     end
 
+     # return true if more then the specified percentage of "guesses" are correct
     function check_learned(phase, probs, correct_perc=0.8, decision_bnd=[0.5,0.5])
         seq_length = length(probs)
         decisions = deepcopy(probs)
@@ -147,7 +150,6 @@ module PRL
     end
 
     function run_experiment(params, filename, seed, method, output=false)
-        # set seed 
         Random.seed!(seed)
 
         # average over n_history past draws for log odds
@@ -223,7 +225,7 @@ module PRL
                     phase_learned = check_learned(phase, probs[start_current:end_current])
                     if phase_learned on_iteration = iteration end
                     if !phase_learned && iteration == max_iter 
-                        all_draws = all_draws[1:(length(all_draws)-50)] # yes this is hardcoded and disgusting. no i'm not fixing it -KK
+                        all_draws = all_draws[1:(length(all_draws)-50)] # yes this is very hardcoded. no i'm not fixing it -KK
                         all_probs = all_probs[1:(length(all_probs)-50)]
                         all_std_devs = all_std_devs[1:(length(all_std_devs)-50)]
                         all_nof_cluster_centers = all_nof_cluster_centers[1:(length(all_nof_cluster_centers)-50)]
@@ -234,6 +236,7 @@ module PRL
             end
 
             if method == "cools"
+                # update learned phases and number of iterations needed
                 if phase_learned 
                     append!(phases_learned, phase)
                     append!(iterations_needed, on_iteration)
@@ -243,6 +246,7 @@ module PRL
             end
         end
 
+        # make plots TODO: save all of them
         label = "mu = $(params.mp)"
         p1 = plot(all_probs, labels = label, xlabel = "Number of drawn beads", ylabel = "Estimated probability", linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
         push!(plots, p1)

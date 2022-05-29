@@ -6,9 +6,6 @@ module Simulations
     function run_prl_sim(models, n_iter, method, output=true)
         for model in models
             model_params_df = DataFrame()
-            # draws_df = DataFrame()
-            # probs_df = DataFrame()
-            # std_devs_df = DataFrame()
 
             draws_dict = Dict()
             probs_dict = Dict()
@@ -20,6 +17,7 @@ module Simulations
             # run n_iter iterations of experiment with model
             for it in range(1,n_iter)
                 params = PRL.ModelParams(model["mm"], model["pm"], model["mp"], model["pp"], model["alpha"], model["m"])
+                # save model parameters
                 if it == 1
                     model_params_df[!, :it] = [it]
                     for field in fieldnames(typeof(params))
@@ -31,21 +29,15 @@ module Simulations
                     push!(model_params_df, values)
                 end
 
+                # run simulation
                 results = PRL.run_experiment(params, filename, it, method, output)
-                
-                # draws_df[!, string(it)] = getfield(results, :draws)[3:length(getfield(results, :draws))] # save without inital 2 values
-                # probs_df[!, string(it)] = getfield(results, :probabilities)
-                # std_devs_df[!, string(it)] = getfield(results, :std_deviations)
 
                 draws_dict[string(it)] = getfield(results, :draws)[3:length(getfield(results, :draws))]
                 probs_dict[string(it)] = getfield(results, :probabilities)
                 std_devs_dict[string(it)] = getfield(results, :std_deviations)
 
                 learning_results["phases_learned_"*string(it)] = getfield(results, :phases_learned)
-                learning_results["iterations_needed_"*string(it)] = getfield(results, :iterations_needed)
-                
-                # header = [string(result) for result in fieldnames(typeof(results))]
-                
+                learning_results["iterations_needed_"*string(it)] = getfield(results, :iterations_needed)                
             end
 
             # save results

@@ -18,6 +18,7 @@ module Eval
         data_files = [file for file in readdir(results_folder) if occursin("eval", file)]
         data_files_cools = [file for file in readdir(results_folder) if occursin("learning_results", file)]
 
+        # read results
         results_df = DataFrame()
         for file in data_files
             tmp = DataFrame(CSV.File(results_folder*file))
@@ -28,6 +29,7 @@ module Eval
         model_names = results_df[!,"model_name"]
         model_names = unique!(deepcopy(model_names))
 
+        # read and restructure number of phases reached and number of iterations needed
         results_learning = Dict()
         for name in model_names
             for file in data_files_cools
@@ -41,9 +43,10 @@ module Eval
                         it_needed = string_to_vec(tmp["iterations_needed_"*string(it)])
                         push!(it_tmp, it_needed)
                     end
-                    phases_reached_tmp = [count(>=(element),ph_tmp) for element in range(1,3) if element > 0]
-                    phases_reached = [sum(phases_reached_tmp[idx:length(phases_reached_tmp)]) for (idx, element) in enumerate(phases_reached_tmp)]
+                    phases_reached_tmp = [count(>=(element),ph_tmp) for element in range(1,3) if element > 0] 
+                    phases_reached = [sum(phases_reached_tmp[idx:length(phases_reached_tmp)]) for (idx, element) in enumerate(phases_reached_tmp)] # how often each phase was reached
                     
+                    # restructure number of iterations needed
                     iterations_tmp = []
                     for i in range(1, maximum(ph_tmp))
                         vals = []
@@ -68,13 +71,14 @@ module Eval
         mean = []
         median = []
 
+        # mean and median values for transition counts observed
         for name in model_names
             tmp = results_df[findall(in([name]), results_df.model_name), :]
             push!(mean, describe(tmp)[!, "mean"][2:7])
             push!(median, describe(tmp)[!, "median"][2:7])
         end
 
-
+        # make bar plots
         if length(model_names) == 2
             ticklabel = string.(categories)
             label1 = model_names[1]
@@ -110,7 +114,7 @@ module Eval
 
         data_files = [file for file in readdir(results_folder) if startswith(file, "prl")]
 
-        model_names = unique!([split(file, '_')[4] for file in data_files])
+        model_names = unique!([split(file, '_')[4] for file in data_files]) # not so nice
 
         for model_name in model_names
             filename = "prl_urn_probs_"*model_name
@@ -134,6 +138,7 @@ module Eval
                 decisions[decisions.<decision_bnd[1]] .= 0
                 decisions[decisions.>=decision_bnd[2]] .= 1
 
+                # get "correct" state sequence for each method
                 if method=="3p_10t"
                     tmp = hcat(ones((1,10)), zeros((1,10)), ones((1,10)))
                     correct = reshape(tmp, size(decisions))
@@ -182,6 +187,7 @@ module Eval
 
                 eval_params = EvalParams(correct_decisions, valid_lose_shift, valid_lose_stay, valid_win_shift, invalid_lose_shift, invalid_win_shift)
 
+                # write to df and save evaluation
                 if it == 1
                     eval_prl_df[!, :it] = [it]
                     for field in fieldnames(typeof(eval_params))
