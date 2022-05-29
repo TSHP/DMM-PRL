@@ -86,7 +86,7 @@ module Eval
             title!("Median")
             savefig(p_median, "./io/plots/prl_urn_probs_eval_median.png")
             
-            if method == method
+            if method == "cools"
                 ticklabel = range(1, length(results_learning[label2*"_reached_phase"]))
                 p_learned_phase = groupedbar([results_learning[label2*"_reached_phase"] results_learning[label1*"_reached_phase"]], bar_position = :dodge, bar_width=0.7, xticks=(1:6, ticklabel), labels = [label2 label1])
                 title!("Correctly learned phase")
