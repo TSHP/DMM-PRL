@@ -26,9 +26,9 @@ def generate_data(file_path, nof_states, p_1, p_2, p_3, p_4, steps):
 
 
 def main():
-    data_path = "../io/data"
-    plot_path = "../io/plots"
-    results_path = "../io/results"
+    data_path = "./io/data"
+    plot_path = "./io/plots"
+    results_path = "./io/results"
 
     filename = "2_states_test"
 

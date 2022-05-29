@@ -67,7 +67,7 @@ def main():
     p_3 = 1  # P(going to state 0 if state transition occurs)
     p_4 = 0  # P(going to state 1 if state transition occurs)
 
-    p_y = 0.85  # P(observing real hidden state)
+    p_y = 0.15  # P(observing real hidden state)
     steps = 100
     states_ratio = 1
     args = [p_1, p_2, p_3, p_4, p_y, steps, states_ratio]
@@ -80,7 +80,7 @@ def main():
     gamma0_b_pri = 1
 
     iters = 10
-    dir0 = 0.1
+    dir0 = 1000
 
     path = data_path + "/2_states_test.npz"
     path_test = data_path + "/2_states_test.npz"
@@ -90,6 +90,12 @@ def main():
     zt_real, yt_real = dat['zt'], dat['yt']  ## yt_real & zt_real are 1d length T1 numpy array
     test_dat = np.load(path_test)
     yt_test = test_dat['yt']  ## yt_test is 1d length T2 numpy array
+
+    yt_real_alt = np.logical_not(yt_real).astype(int)
+    yt_real = np.vstack((yt_real, yt_real_alt)).T
+
+    yt_test_alt = np.logical_not(yt_test).astype(int)
+    yt_test = np.vstack((yt_test, yt_test_alt)).T
 
     fig, ax = plt.subplots()
     ax.set_title('zt_real')
@@ -102,11 +108,11 @@ def main():
     ax.set_title('yt_real')
     ax.set_xlabel('t')
     ax.set_ylabel('yt_real')
-    ax.scatter(range(0, len(yt_real)), yt_real, color='tab:blue')
+    ax.scatter(range(0, yt_real.shape[0]), yt_real[:, 0], color='tab:blue')
     fig.savefig(plot_path + "/yt_real.eps", format='eps')
 
     T = len(yt_real)
-    dir0 = dir0 * np.ones(1)
+    dir0 = dir0 * np.ones(yt_real.shape[1])
 
     ### start gibbs
     zt_sample = []
@@ -156,6 +162,8 @@ def main():
              hamming=mismatch_vec, zt_permute=zt_sample_permute, loglik=loglik_test_sample)
 
     test = np.load(results_path + "/" + filename + "_full_bayesian_gibbs_multinomial_reg.npz")
+
+    print(np.squeeze(test['zt']))
 
     fig, ax = plt.subplots()
     ax.set_title('zt_test')
