@@ -124,8 +124,8 @@ module PRL
             n_phases = 1
             max_iter = 1
         elseif method == "cools"
-            n_phases = 2
-            max_iter = 2
+            n_phases = 3
+            max_iter = 5
         elseif method == "test"
             n_phases = 1
             max_iter = 1
@@ -174,6 +174,7 @@ module PRL
         for phase in range(1,n_phases)
             if output @show phase end
             phase_learned = false
+            on_iteration = 1
             iteration = 1
 
             # add draws while maximum iterations not exceeded and phase not learned
@@ -220,6 +221,13 @@ module PRL
                     start_current = (iteration-1) * segment_length + 1  # start at 1, 11, 21, ...
                     end_current = length(probs)
                     phase_learned = check_learned(phase, probs[start_current:end_current])
+                    if phase_learned on_iteration = iteration end
+                    if !phase_learned && iteration == max_iter 
+                        all_draws = all_draws[1:(length(all_draws)-50)] # yes this is hardcoded and disgusting. no i'm not fixing it -KK
+                        all_probs = all_probs[1:(length(all_probs)-50)]
+                        all_std_devs = all_std_devs[1:(length(all_std_devs)-50)]
+                        all_nof_cluster_centers = all_nof_cluster_centers[1:(length(all_nof_cluster_centers)-50)]
+                    end
                 end
                 
                 iteration += 1
@@ -228,7 +236,7 @@ module PRL
             if method == "cools"
                 if phase_learned 
                     append!(phases_learned, phase)
-                    append!(iterations_needed, (iteration-1))
+                    append!(iterations_needed, on_iteration)
                 else
                     break
                 end
