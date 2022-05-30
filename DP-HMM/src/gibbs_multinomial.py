@@ -15,6 +15,7 @@ def transform(concentration, stick_ratio):
 
 def sample_one_step_ahead(zt, yt, n_mat, ysum, beta_vec, beta_new, alpha0, gamma0, dir0, rho0, K):
     T = len(zt)
+    print(yt)
     n_multi = sum(yt[0])
     m_multi = len(yt[0])
     dir0_sum = sum(dir0)

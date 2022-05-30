@@ -5,7 +5,7 @@ from numpy.random import randn, seed, multinomial
 import matplotlib.pyplot as plt
 
 from src.simulate_data import sample_same_trans, sample_same_stick
-from src.gibbs_gaussian_efox import *
+from src.gibbs_gaussian import *
 from src.permute import compute_cost
 from src.util import sample_pi_efox, compute_log_marginal_lik_gaussian
 
@@ -191,6 +191,14 @@ def main():
 
     # save plots
     save_plots(plot_path=plot_path, zt_real=zt_real, yt_real=yt_real, zt_test=np.squeeze(test['zt']))
+
+    print(test['loglik'])
+    
+    fig, ax = plt.subplots()
+    ax.set_title('yt_test')
+    ax.set_xlabel('t')
+    ax.plot(np.squeeze(test['loglik']), 'tab:blue')
+    fig.savefig(plot_path + "/loglik_test.eps", format='eps')
 
 
 if __name__ == "__main__":
