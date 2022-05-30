@@ -1,10 +1,14 @@
 module Simulations
-    include("prl_sim.jl")
     using DataFrames
     using JLD2
-    # run simulation of the prl experiment specified in "method"
-    function run_prl_sim(models, n_iter, method, output=true)
+    include("prl_sim.jl")
+    include("constants.jl")
+
+    # Run simulation of the probabilistic reversal learning experiment specified in "method"
+    function run_prl_sim(models, n_iter, method, output=false)
         for model in models
+
+            # Initialize empty dataframe and dictionaries to store results
             model_params_df = DataFrame()
 
             draws_dict = Dict()
@@ -14,10 +18,10 @@ module Simulations
 
             filename = "prl_urn_probs_" * model["name"]
 
-            # run n_iter iterations of experiment with model
+            # Run n_iter iterations of experiment with model
             for it in range(1,n_iter)
                 params = PRL.ModelParams(model["mm"], model["pm"], model["mp"], model["pp"], model["alpha"], model["m"])
-                # save model parameters
+                # Save model parameters
                 if it == 1
                     model_params_df[!, :it] = [it]
                     for field in fieldnames(typeof(params))
@@ -25,11 +29,11 @@ module Simulations
                     end
                 else
                     values = [getfield(params, field) for field in fieldnames(typeof(params))]
-                    values = [it;values]
+                    values = [it; values]
                     push!(model_params_df, values)
                 end
 
-                # run simulation
+                # Run simulation
                 results = PRL.run_experiment(params, filename, it, method, output)
 
                 draws_dict[string(it)] = getfield(results, :draws)[3:length(getfield(results, :draws))]
@@ -40,13 +44,12 @@ module Simulations
                 learning_results["iterations_needed_" * string(it)] = getfield(results, :iterations_needed)                
             end
 
-            # save results
-            print("Saving results...")
-            save("./io/results/" * filename * "_model_params.jld2", "data", model_params_df)
-            save("./io/results/" * filename * "_draws.jld2", "data", draws_dict)
-            save("./io/results/" * filename * "_probs.jld2", "data", probs_dict)
-            save("./io/results/" * filename * "_std_devs.jld2", "data", std_devs_dict)
-            save("./io/results/" * filename * "_learning_results.jld2", "data", learning_results)
+            # Save results
+            save(results_folder * filename * "_model_params.jld2", "data", model_params_df)
+            save(results_folder * filename * "_draws.jld2", "data", draws_dict)
+            save(results_folder * filename * "_probs.jld2", "data", probs_dict)
+            save(results_folder * filename * "_std_devs.jld2", "data", std_devs_dict)
+            save(results_folder * filename * "_learning_results.jld2", "data", learning_results)
         end
     end
 end

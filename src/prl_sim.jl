@@ -1,7 +1,8 @@
 module PRL
     using Distributions, StatsFuns, Random
     using Plots, Colors
-    include("./dmm.jl")
+    include("dmm.jl")
+    include("constants.jl")
 
     struct ModelParams
         mm::Float16
@@ -24,7 +25,7 @@ module PRL
         seq = []
         urn_0 = Binomial(1, 0.15)
         urn_1 = Binomial(1, 0.85)
-        n_draws=10
+        n_draws = 10
 
         if method == "3p_10t"
             # 3 phases, draw from different urn each phase
@@ -35,14 +36,8 @@ module PRL
         elseif method=="cools"
             # 3 phases, draw from different urn each phase
             seq = phase % 2 == 0 ? rand(urn_0, n_draws) : rand(urn_1, n_draws) 
-        elseif method == "test"
-            n_draws=1
-            for it in 1:3
-                draws = it % 2 == 0 ? rand(urn_0, n_draws) : rand(urn_1, n_draws)
-                seq = [seq; draws]
-            end
         else
-            throw("Method "*string(method)*" not implemented")
+            throw("Method " * string(method) * " not implemented")
         end
         return seq
     end
@@ -62,21 +57,21 @@ module PRL
     end
 
     function clean_log_odds!(log_odds)
-        replace!(log_odds, Inf=>NaN)
-        replace!(log_odds, NaN=>maximum(filter(!isnan, log_odds)))
+        replace!(log_odds, Inf => NaN)
+        replace!(log_odds, NaN => maximum(filter(!isnan, log_odds)))
 
-        replace!(log_odds, -Inf=>NaN)
-        replace!(log_odds, NaN=>minimum(filter(!isnan, log_odds)))
+        replace!(log_odds, -Inf => NaN)
+        replace!(log_odds, NaN => minimum(filter(!isnan, log_odds)))
     end
 
     function save_plots(all_draws, plots, filename)
         beads_plot = scatter(all_draws[3:length(all_draws)], linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
         yticks!([0, 1])
         plot(plots[1], beads_plot, layout = (2, 1), plot_title = "Estimated probability of the beads coming from urn 1", titlefontsize = 7)
-        png("./io/plots/" * filename * ".png")
+        png(plots_folder * filename * ".png")
     end
 
-    # run a phase of the experiment
+    # Run a phase of the experiment
     function run_phase(M, urn_log_odds, n_history, output)
         n_steps = 10
         probs = []
@@ -95,7 +90,7 @@ module PRL
             # Do MCMC
             n_iter = 1000
             chn = DMM.do_mcmc(xinit, ones(2), target(DMM.Model()), proposal, n = n_iter)
-            theta = mean(chn.theta[round(Int, n_iter/2):end, :], dims = 1)
+            theta = mean(chn.theta[round(Int, n_iter / 2):end, :], dims = 1)
 
             push!(comps_init, (n = nk, theta = theta))
 
@@ -136,11 +131,12 @@ module PRL
         else
             throw("Method " * string(method) * " not implemented")
         end
+
         return (n_phases, max_iter)
     end
 
      # return true if more then the specified percentage of "guesses" are correct
-    function check_learned(phase, probs, correct_perc=0.8, decision_bnd=[0.5,0.5])
+    function check_learned(phase, probs, correct_perc = 0.8, decision_bnd = [0.5, 0.5])
         seq_length = length(probs)
         decisions = deepcopy(probs)
         decisions[decisions .< decision_bnd[1]] .= 0
@@ -181,11 +177,11 @@ module PRL
             on_iteration = 1
             iteration = 1
 
-            # add draws while maximum iterations not exceeded and phase not learned
+            # Add draws while maximum iterations not exceeded and phase not learned
             while iteration in range(1, max_iter) && !phase_learned
                 if output @show iteration end
 
-                # generate appropriate draw sequence
+                # Generate appropriate draw sequence
                 if method == "3p_10t"
                     draws = generate_bead_seq(method, phase)
                 elseif method == "cools"
@@ -194,21 +190,21 @@ module PRL
                     throw("Method " * string(method) * " not implemented")
                 end
 
-                # at first pass add initial 0, 1
+                # At first pass add initial 0, 1
                 if phase == 1 && iteration == 1
                     pushfirst!(draws, 0)
                     pushfirst!(draws, 1)
                 end
 
-                # update draw sequence
+                # Update draw sequence
                 append!(all_draws, draws)
                 
-                # calculate probabilities and log odds
+                # Calculate probabilities and log odds
                 urn_probs = get_urn_probs(all_draws, n_history)
                 urn_log_odds = [log(urn_probs[i] / (1 - urn_probs[i])) for i in 1:length(urn_probs)]
                 clean_log_odds!(urn_log_odds)
 
-                # run experiment
+                # Run experiment
                 probs, std_devs, nof_cluster_centers = run_phase(M, urn_log_odds, n_history, output)
 
                 # update results (in a very ugly way. theoretically it should suffice just to use probs, std_devs etc. 
@@ -239,7 +235,7 @@ module PRL
                 if !phase_learned 
                     break
                 end
-                # update learned phases and number of iterations needed
+                # Update learned phases and number of iterations needed
                 append!(phases_learned, phase)
                 append!(iterations_needed, on_iteration)
             end
