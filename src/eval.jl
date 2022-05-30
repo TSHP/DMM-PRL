@@ -3,22 +3,13 @@ module Evaluation
     using JLD2, FileIO
     include("constants.jl")
 
-    #struct EvalParams
-    #    correct_decisions::UInt16
-    #    valid_lose_shift::UInt16
-    #    valid_lose_stay::UInt16
-    #    valid_win_shift::UInt16
-    #    invalid_lose_shift::UInt16
-    #    invalid_win_shift::UInt16
-    #end
-
-    function evaluate_prl(method, decision_bnd=[0.5,0.5])
+    function evaluate_prl(method, decision_bnd = [0.5, 0.5])
         data_files = [file for file in readdir(results_folder) if startswith(file, "prl")]
 
-        model_names = unique!([split(file, '_')[4] for file in data_files]) # not so nice
+        model_names = unique!([split(file, '_')[2] for file in data_files]) # TODO: Not so nice
 
         for model_name in model_names
-            filename = "prl_urn_probs_" * model_name
+            filename = "prl_" * model_name
 
             learning_results = Dict(load(results_folder * filename * "_learning_results.jld2")["data"])
             draws_dict = Dict(load(results_folder * filename * "_draws.jld2")["data"])
@@ -84,24 +75,7 @@ module Evaluation
 
                 correct_decisions = sum(decisions .== correct)
 
-                #eval_params = EvalParams(correct_decisions, valid_lose_shift, valid_lose_stay, valid_win_shift, invalid_lose_shift, invalid_win_shift)
-                eval_params = [correct_decisions, valid_lose_shift, valid_lose_stay, valid_win_shift, invalid_lose_shift, invalid_win_shift]
-
-                push!(eval_prl_df, [it; eval_params; model_name]) 
-                #if it == 1
-                #    eval_prl_df[!, :it] = [it]
-                #    for field in fieldnames(typeof(eval_params))
-                #        eval_prl_df[!, string(field)] = [getfield(eval_params, field)]
-                #    end
-                #    eval_prl_df[!, :model_name] = [model_name]
-                #else
-                #    values = [getfield(eval_params, field) for field in fieldnames(typeof(eval_params))]
-                #print(eval_prl_df)
-                #    values = [it; values; model_name]
-                #    print(values)
-                #    push!(eval_prl_df, values)
-                    
-                #end
+                push!(eval_prl_df, [it, correct_decisions, valid_lose_shift, valid_lose_stay, valid_win_shift, invalid_lose_shift, invalid_win_shift, model_name]) 
 
                 save(results_folder * filename * "_eval.jld2", "data", eval_prl_df)
             end

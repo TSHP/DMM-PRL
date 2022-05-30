@@ -6,13 +6,45 @@ module DMM_Plots
 
     function generate_plots(method)
         make_bar_plots(method)
+        make_probability_plots()
+    end
+
+    function make_probability_plots()
+        prob_control_file = [file for file in readdir(results_folder) if occursin("probs", file) && occursin("control", file)][1]
+        draw_control_file = [file for file in readdir(results_folder) if occursin("draws", file) && occursin("control", file)][1]
+
+        probs_control = load(results_folder * prob_control_file)["data"]
+        draws_control = load(results_folder * draw_control_file)["data"]
+
+        for key in keys(probs_control)
+            prob_plot = plot(probs_control[key], xlabel = "Number of drawn beads", ylabel = "Estimated probability", linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
+            draws_plot = scatter(draws_control[key], xlabel = "Number of drawn beads", ylabel = "Bead drawn", linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
+            yticks!([0, 1])
+            plot(prob_plot, draws_plot, layout = (2, 1), plot_title = "Estimated probability by control of the beads coming from urn 1", titlefontsize = 7)
+            png(plots_folder * "probs_control_" * key * ".png")
+        end
+
+        prob_patient_file = [file for file in readdir(results_folder) if occursin("probs", file) && occursin("patient", file)][1]
+        draw_patient_file = [file for file in readdir(results_folder) if occursin("draws", file) && occursin("patient", file)][1]
+
+        probs_patient = load(results_folder * prob_patient_file)["data"]
+        draws_patient = load(results_folder * draw_patient_file)["data"]
+
+        for key in keys(probs_patient)
+            prob_plot = plot(probs_patient[key], xlabel = "Number of drawn beads", ylabel = "Estimated probability", linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
+            draws_plot = scatter(draws_patient[key], xlabel = "Number of drawn beads", ylabel = "Bead drawn", linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
+            yticks!([0, 1])
+            plot(prob_plot, draws_plot, layout = (2, 1), plot_title = "Estimated probability by patient of the beads coming from urn 1", titlefontsize = 7)
+            png(plots_folder * "probs_patient_" * key * ".png")
+        end
+        
     end
 
     function make_bar_plots(method)
         data_files = [file for file in readdir(results_folder) if occursin("eval", file)]
         data_files_cools = [file for file in readdir(results_folder) if occursin("learning_results", file)]
 
-        # read results
+        # Read results
         results_df = DataFrame()
         for file in data_files
             tmp = DataFrame(load(results_folder * file)["data"])
@@ -77,9 +109,11 @@ module DMM_Plots
             ticklabel = string.(categories)
             label1 = model_names[1]
             label2 = model_names[2]
+
             p_mean = groupedbar([mean[2] mean[1]], bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), xrotation = 20, labels = [label2 label1])
             title!("Mean")
             savefig(p_mean, plots_folder * "prl_urn_probs_eval_mean.png")
+
             p_median = groupedbar([median[2] median[1]], bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), xrotation = 20, labels = [label2 label1])
             title!("Median")
             savefig(p_median, plots_folder * "prl_urn_probs_eval_median.png")
@@ -90,10 +124,12 @@ module DMM_Plots
                                                 bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), labels = [label2 label1])
                 title!("Correctly learned phase")
                 savefig(p_learned_phase, plots_folder * "correctly_learned_phase.png")
+
                 p_mean_tries = groupedbar([results_learning[label2 * "_mean_iterations"] results_learning[label1 * "_mean_iterations"]], 
                                             bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), labels = [label2 label1])
                 title!("Mean tries until phase learned")
                 savefig(p_mean_tries, plots_folder * "mean_tries.png")
+
                 p_median_tries = groupedbar([results_learning[label2 * "_median_iterations"] results_learning[label1 * "_median_iterations"]], 
                                             bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), labels = [label2 label1])
                 title!("Median tries until phase learned")

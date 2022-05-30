@@ -1,6 +1,5 @@
 module PRL
-    using Distributions, StatsFuns, Random
-    using Plots, Colors
+    using Distributions, Random
     include("dmm.jl")
     include("constants.jl")
 
@@ -21,7 +20,12 @@ module PRL
         iterations_needed::Array
     end
 
-    function generate_bead_seq(method, phase=1)
+    # TODO: Anonymous functions for model, maybe move somewhere else
+    prior(m::Real, p::Real, M::NamedTuple) = logpdf(M.prior.prior_m, m) + logpdf(truncated(M.prior.prior_p, 0, Inf), p)
+    target(M) = (x, theta) -> sum(logpdf.(Normal(theta[1], 1 / sqrt(theta[2])), x)) + prior(theta..., M)
+    proposal(theta) = [rand(Normal(theta[1], 1)), rand(truncated(Normal(theta[2], 1), 0, Inf))]
+
+    function generate_bead_seq(method, phase = 1)
         seq = []
         urn_0 = Binomial(1, 0.15)
         urn_1 = Binomial(1, 0.85)
@@ -42,11 +46,6 @@ module PRL
         return seq
     end
 
-    # Anonymous functions for model, maybe move somewhere else
-    prior(m::Real, p::Real, M::NamedTuple) = logpdf(M.prior.prior_m, m) + logpdf(truncated(M.prior.prior_p, 0, Inf), p)
-    target(M) = (x, theta) -> sum(logpdf.(Normal(theta[1], 1/sqrt(theta[2])), x)) + prior(theta..., M)
-    proposal(theta) = [rand(Normal(theta[1], 1)), rand(truncated(Normal(theta[2], 1), 0, Inf))]
-
     function get_urn_probs(draws, n_history)
         urn_probs = []
         for draw in 2:length(draws)
@@ -64,11 +63,31 @@ module PRL
         replace!(log_odds, NaN => minimum(filter(!isnan, log_odds)))
     end
 
-    function save_plots(all_draws, plots, filename)
-        beads_plot = scatter(all_draws[3:length(all_draws)], linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
-        yticks!([0, 1])
-        plot(plots[1], beads_plot, layout = (2, 1), plot_title = "Estimated probability of the beads coming from urn 1", titlefontsize = 7)
-        png(plots_folder * filename * ".png")
+    # Set number of phases and iterations according to experiment
+    function setup_experiment(method)
+        if method == "3p_10t"
+            n_phases = 1
+            max_iter = 1
+        elseif method == "cools"
+            n_phases = 3
+            max_iter = 5
+        else
+            throw("Method " * string(method) * " not implemented")
+        end
+
+        return (n_phases, max_iter)
+    end
+
+    # Return true if more then the specified percentage of "guesses" are correct
+    function check_learned(phase, probs, correct_perc = 0.8, decision_bnd = [0.5, 0.5])
+        seq_length = length(probs)
+        decisions = deepcopy(probs)
+        decisions[decisions .< decision_bnd[1]] .= 0
+        decisions[decisions .>= decision_bnd[2]] .= 1
+
+        correct_seq = phase % 2 == 0 ? zeros(seq_length) : ones(seq_length)
+
+        return sum(decisions .== correct_seq) >= correct_perc*seq_length
     end
 
     # Run a phase of the experiment
@@ -120,55 +139,27 @@ module PRL
         return (probs, std_devs, nof_cluster_centers)
     end
 
-    # set number of phases and iterations according to experiment
-    function setup_experiment(method)
-        if method == "3p_10t"
-            n_phases = 1
-            max_iter = 1
-        elseif method == "cools"
-            n_phases = 3
-            max_iter = 5
-        else
-            throw("Method " * string(method) * " not implemented")
-        end
-
-        return (n_phases, max_iter)
-    end
-
-     # return true if more then the specified percentage of "guesses" are correct
-    function check_learned(phase, probs, correct_perc = 0.8, decision_bnd = [0.5, 0.5])
-        seq_length = length(probs)
-        decisions = deepcopy(probs)
-        decisions[decisions .< decision_bnd[1]] .= 0
-        decisions[decisions .>= decision_bnd[2]] .= 1
-
-        correct_seq = phase % 2 == 0 ? zeros(seq_length) : ones(seq_length)
-
-        return sum(decisions .== correct_seq) >= correct_perc*seq_length
-    end
-
-    function run_experiment(params, filename, seed, method, output=false)
+    function run_experiment(params, seed, method, output = false)
         Random.seed!(seed)
 
-        # average over n_history past draws for log odds
+        # Average over n_history past draws for log odds
         n_history = 5
 
-        # init model
+        # Init model
         M = DMM.Model(pm = params.pm, mp = params.mp, pp = params.pp, alpha = params.alpha)
         
         all_probs = []
         all_std_devs = []
         all_nof_cluster_centers = []
-        plots = []
         all_draws = []
 
-        # get experiment settings
+        # Get experiment settings
         n_phases, max_iter = setup_experiment(method)
 
         phases_learned = []
         iterations_needed = []
 
-        # start simulation
+        # Start simulation
         if output print("Starting simulation...\n") end
 
         for phase in range(1, n_phases)
@@ -207,14 +198,13 @@ module PRL
                 # Run experiment
                 probs, std_devs, nof_cluster_centers = run_phase(M, urn_log_odds, n_history, output)
 
-                # update results (in a very ugly way. theoretically it should suffice just to use probs, std_devs etc. 
-                # HOWEVER. the plot function around line 238 will not take those as arguments. Somebody please fix this I tried for 3h. -KK)
+                # Update results
                 segment_length = phase == 1 && iteration == 1 ? length(draws) - 2 : length(draws)
                 append!(all_probs, probs[(length(probs) - segment_length + 1): length(probs)])
                 append!(all_std_devs, std_devs[(length(std_devs)- segment_length + 1): length(std_devs)])
                 append!(all_nof_cluster_centers, nof_cluster_centers[length(nof_cluster_centers)-segment_length+1: length(nof_cluster_centers)])
 
-                # check if model learned state with newly added sequence
+                # Check if model learned state with newly added sequence
                 if method == "cools"
                     start_current = (iteration - 1) * segment_length + 1  # start at 1, 11, 21, ...
                     end_current = length(probs)
@@ -240,13 +230,6 @@ module PRL
                 append!(iterations_needed, on_iteration)
             end
         end
-
-        # make plots TODO: save all of them
-        label = "mu = $(params.mp)"
-        p1 = plot(all_probs, labels = label, xlabel = "Number of drawn beads", ylabel = "Estimated probability", linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
-        push!(plots, p1)
-
-        save_plots(all_draws, plots, filename)
 
         return Results(all_draws, all_probs, all_std_devs, phases_learned, iterations_needed)
     end

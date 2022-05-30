@@ -5,7 +5,7 @@ module Simulations
     include("constants.jl")
 
     # Run simulation of the probabilistic reversal learning experiment specified in "method"
-    function run_prl_sim(models, n_iter, method, output=false)
+    function run_prl_sim(models, n_iter, method, output = false)
         for model in models
 
             # Initialize empty dataframe and dictionaries to store results
@@ -16,10 +16,8 @@ module Simulations
             std_devs_dict = Dict()
             learning_results = Dict()
 
-            filename = "prl_urn_probs_" * model["name"]
-
             # Run n_iter iterations of experiment with model
-            for it in range(1,n_iter)
+            for it in range(1, n_iter)
                 params = PRL.ModelParams(model["mm"], model["pm"], model["mp"], model["pp"], model["alpha"], model["m"])
                 # Save model parameters
                 if it == 1
@@ -34,7 +32,7 @@ module Simulations
                 end
 
                 # Run simulation
-                results = PRL.run_experiment(params, filename, it, method, output)
+                results = PRL.run_experiment(params, it, method, output)
 
                 draws_dict[string(it)] = getfield(results, :draws)[3:length(getfield(results, :draws))]
                 probs_dict[string(it)] = getfield(results, :probabilities)
@@ -45,6 +43,7 @@ module Simulations
             end
 
             # Save results
+            filename = "prl_" * model["name"]
             save(results_folder * filename * "_model_params.jld2", "data", model_params_df)
             save(results_folder * filename * "_draws.jld2", "data", draws_dict)
             save(results_folder * filename * "_probs.jld2", "data", probs_dict)
