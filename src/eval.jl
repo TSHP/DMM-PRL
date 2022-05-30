@@ -1,8 +1,7 @@
-using CSV, DataFrames
-using StatsPlots, StatsBase, Statistics
-include("./utils.jl")
 module Eval
-    
+    using CSV, DataFrames
+    using StatsPlots, StatsBase, Statistics
+    include("./utils.jl")
     struct EvalParams
         correct_decisions::UInt16
         valid_lose_shift::UInt16
@@ -26,7 +25,7 @@ module Eval
         end
 
         categories = names(results_df)[2:7]
-        model_names = results_df[!,"model_name"]
+        model_names = results_df[!, "model_name"]
         model_names = unique!(deepcopy(model_names))
 
         # read and restructure number of phases reached and number of iterations needed

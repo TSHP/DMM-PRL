@@ -1,7 +1,6 @@
-using Distributions, StatsFuns, Random
-using Plots, Colors
-include("./utils.jl")
 module DMM
+    using Distributions, StatsFuns, Random
+    include("./utils.jl")
     ## MCMC inference for updating of parameters of component specific models
     function do_mcmc(x, theta, target::Function, proposal::Function; n=1000) 
         vec = Array{typeof(theta), 1}(undef, n)
@@ -15,9 +14,9 @@ module DMM
     end
 
     function mcmc_step!(i, vec, ll, x, target::Function, proposal::Function)
-        can = proposal(vec[i-1])
+        can = proposal(vec[i - 1])
         lik = target(x, can)
-        if (rand() < exp(lik - ll[i-1])) 
+        if (rand() < exp(lik - ll[i - 1])) 
             vec[i] = can
             ll[i]  = lik
         else

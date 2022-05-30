@@ -1,7 +1,7 @@
-include("prl_sim.jl")
-using DataFrames, CSV
-using JLD2, FileIO
 module Simulations
+    include("prl_sim.jl")
+    using DataFrames, CSV
+    using JLD2, FileIO
     # run simulation of the prl experiment specified in "method"
     function run_prl_sim(models, n_iter, method, output=true)
         for model in models

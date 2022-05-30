@@ -1,8 +1,8 @@
-using Distributions, StatsFuns, Random
-using Plots, Colors
-include("./dmm.jl")
-include("./utils.jl")
 module PRL
+    using Distributions, StatsFuns, Random
+    using Plots, Colors
+    include("./dmm.jl")
+    include("./utils.jl")
 
     struct ModelParams
         mm::Float16
@@ -30,16 +30,16 @@ module PRL
         if method == "3p_10t"
             # 3 phases, draw from different urn each phase
             for it in 1:3
-                draws = it%2 == 0 ? rand(urn_0, n_draws) : rand(urn_1, n_draws)
+                draws = it % 2 == 0 ? rand(urn_0, n_draws) : rand(urn_1, n_draws)
                 seq = [seq; draws]
             end
         elseif method=="cools"
             # 3 phases, draw from different urn each phase
-            seq = phase%2 == 0 ? rand(urn_0, n_draws) : rand(urn_1, n_draws) 
+            seq = phase % 2 == 0 ? rand(urn_0, n_draws) : rand(urn_1, n_draws) 
         elseif method == "test"
             n_draws=1
             for it in 1:3
-                draws = it%2 == 0 ? rand(urn_0, n_draws) : rand(urn_1, n_draws)
+                draws = it % 2 == 0 ? rand(urn_0, n_draws) : rand(urn_1, n_draws)
                 seq = [seq; draws]
             end
         else
@@ -74,7 +74,7 @@ module PRL
 
     # run a phase of the experiment
     function run_phase(M, urn_log_odds, n_history, output)
-        n_steps=10
+        n_steps = 10
         probs = []
         std_devs = []
         nof_cluster_centers = []
@@ -141,19 +141,19 @@ module PRL
     function check_learned(phase, probs, correct_perc=0.8, decision_bnd=[0.5,0.5])
         seq_length = length(probs)
         decisions = deepcopy(probs)
-        decisions[decisions.<decision_bnd[1]] .= 0
-        decisions[decisions.>=decision_bnd[2]] .= 1
+        decisions[decisions .< decision_bnd[1]] .= 0
+        decisions[decisions .>= decision_bnd[2]] .= 1
 
         correct_seq = phase%2 == 0 ? zeros(seq_length) : ones(seq_length)
 
-        return sum(decisions.==correct_seq) >= correct_perc*seq_length
+        return sum(decisions .== correct_seq) >= correct_perc*seq_length
     end
 
     function run_experiment(params, filename, seed, method, output=false)
         Random.seed!(seed)
 
         # average over n_history past draws for log odds
-        n_history=5
+        n_history = 5
 
         # init model
         M = DMM.Model(pm = params.pm, mp = params.mp, pp = params.pp, alpha = params.alpha)
@@ -220,15 +220,15 @@ module PRL
 
                 # check if model learned state with newly added sequence
                 if method == "cools"
-                    start_current = (iteration-1) * segment_length + 1  # start at 1, 11, 21, ...
+                    start_current = (iteration - 1) * segment_length + 1  # start at 1, 11, 21, ...
                     end_current = length(probs)
                     phase_learned = check_learned(phase, probs[start_current:end_current])
                     if phase_learned on_iteration = iteration end
                     if !phase_learned && iteration == max_iter 
-                        all_draws = all_draws[1:(length(all_draws)-50)] # yes this is very hardcoded. no i'm not fixing it -KK
-                        all_probs = all_probs[1:(length(all_probs)-50)]
-                        all_std_devs = all_std_devs[1:(length(all_std_devs)-50)]
-                        all_nof_cluster_centers = all_nof_cluster_centers[1:(length(all_nof_cluster_centers)-50)]
+                        all_draws = all_draws[1:(length(all_draws) - 50)] # yes this is very hardcoded. no i'm not fixing it -KK
+                        all_probs = all_probs[1:(length(all_probs) - 50)]
+                        all_std_devs = all_std_devs[1:(length(all_std_devs) - 50)]
+                        all_nof_cluster_centers = all_nof_cluster_centers[1:(length(all_nof_cluster_centers) - 50)]
                     end
                 end
                 
@@ -250,10 +250,6 @@ module PRL
         label = "mu = $(params.mp)"
         p1 = plot(all_probs, labels = label, xlabel = "Number of drawn beads", ylabel = "Estimated probability", linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
         push!(plots, p1)
-        p2 = plot(all_std_devs, labels = label, xlabel = "Number of drawn beads", ylabel = "Estimated standard deviation", linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
-        push!(plots, p2)
-        p3 = plot(all_nof_cluster_centers, labels = label, xlabel = "Number of drawn beads", ylabel = "Number of clusters", linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
-        push!(plots, p3)
 
         save_plots(all_draws, plots, filename)
 
