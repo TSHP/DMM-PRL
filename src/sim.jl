@@ -1,7 +1,7 @@
+include("prl_sim.jl")
+using DataFrames, CSV
+using JLD2, FileIO
 module Simulations
-    include("prl_sim.jl")
-    using DataFrames, CSV
-    
     # run simulation of the prl experiment specified in "method"
     function run_prl_sim(models, n_iter, method, output=true)
         for model in models
@@ -36,16 +36,16 @@ module Simulations
                 probs_dict[string(it)] = getfield(results, :probabilities)
                 std_devs_dict[string(it)] = getfield(results, :std_deviations)
 
-                learning_results["phases_learned_"*string(it)] = getfield(results, :phases_learned)
-                learning_results["iterations_needed_"*string(it)] = getfield(results, :iterations_needed)                
+                learning_results["phases_learned_" * string(it)] = getfield(results, :phases_learned)
+                learning_results["iterations_needed_" * string(it)] = getfield(results, :iterations_needed)                
             end
 
             # save results
-            CSV.write("./io/results/"*filename*"_model_params.csv", model_params_df)
-            CSV.write("./io/results/"*filename*"_draws.csv", draws_dict)
-            CSV.write("./io/results/"*filename*"_probs.csv", probs_dict)
-            CSV.write("./io/results/"*filename*"_std_devs.csv", std_devs_dict)
-            CSV.write("./io/results/"*filename*"_learning_results.csv", learning_results)
+            CSV.write("./io/results/" * filename * "_model_params.csv", model_params_df)
+            CSV.write("./io/results/" * filename * "_draws.csv", draws_dict)
+            CSV.write("./io/results/" * filename * "_probs.csv", probs_dict)
+            CSV.write("./io/results/" * filename * "_std_devs.csv", std_devs_dict)
+            CSV.write("./io/results/" * filename * "_learning_results.csv", learning_results)
         end
     end
 end

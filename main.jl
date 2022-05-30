@@ -1,5 +1,7 @@
 include("./src/sim.jl")
 include("./src/eval.jl")
+using Simulations
+using Eval
 
 # init model parameters
 M1 = Dict([("name", "patient"), ("mm", 0), ("pm", 0.01), ("mp", 1000), ("pp", 10), ("alpha", 1), ("m", 1.5)])

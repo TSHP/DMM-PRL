@@ -1,8 +1,7 @@
-module GMM
-    using Distributions, StatsFuns, Random
-    using Plots, Colors
-    include("./utils.jl")
-
+using Distributions, StatsFuns, Random
+using Plots, Colors
+include("./utils.jl")
+module DMM
     ## MCMC inference for updating of parameters of component specific models
     function do_mcmc(x, theta, target::Function, proposal::Function; n=1000) 
         vec = Array{typeof(theta), 1}(undef, n)

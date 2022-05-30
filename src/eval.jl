@@ -1,8 +1,8 @@
+using CSV, DataFrames
+using StatsPlots, StatsBase, Statistics
+include("./utils.jl")
 module Eval
-    using CSV, DataFrames
-    using StatsPlots, StatsBase, Statistics
-    include("./utils.jl")
-
+    
     struct EvalParams
         correct_decisions::UInt16
         valid_lose_shift::UInt16
@@ -21,7 +21,7 @@ module Eval
         # read results
         results_df = DataFrame()
         for file in data_files
-            tmp = DataFrame(CSV.File(results_folder*file))
+            tmp = DataFrame(CSV.File(results_folder * file))
             results_df = vcat(results_df, tmp)
         end
 
@@ -119,9 +119,9 @@ module Eval
         for model_name in model_names
             filename = "prl_urn_probs_"*model_name
 
-            learning_results = Dict(CSV.File(("./io/results/"*filename*"_learning_results.csv")))
-            draws_dict = Dict(CSV.File("./io/results/"*filename*"_draws.csv"))
-            probs_dict = Dict(CSV.File("./io/results/"*filename*"_probs.csv"))
+            learning_results = Dict(CSV.File(("./io/results/" * filename * "_learning_results.csv")))
+            draws_dict = Dict(CSV.File("./io/results/" * filename * "_draws.csv"))
+            probs_dict = Dict(CSV.File("./io/results/" * filename * "_probs.csv"))
             
             eval_prl_df = DataFrame()
 
@@ -160,11 +160,11 @@ module Eval
                         correct = repeat([1], length(decisions))
                     end
                 else
-                    throw("Method "*string(method)*" not implemented")
+                    throw("Method " * string(method) * " not implemented")
                 end
 
-                @assert(length(correct)==length(decisions))
-                @assert(length(correct)==length(draws))
+                @assert(length(correct) == length(decisions))
+                @assert(length(correct) == length(draws))
 
                 for (idx, d) in enumerate(decisions)
                     if idx == length(decisions) - 1
@@ -201,7 +201,7 @@ module Eval
                     
                 end
 
-                CSV.write("./io/results/"*filename*"_eval.csv", eval_prl_df)
+                CSV.write("./io/results/" * filename * "_eval.csv", eval_prl_df)
             end
         end
         make_bar_plots(method)

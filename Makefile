@@ -1,32 +1,13 @@
-.PHONY: init io env requirements clean check
+.PHONY: init io clean
 
 PROJECT_DIR := $(shell pwd)
 ENV = env
 
-init: io env
-
-check:
-	@echo $(shell pwd)
-io:
+init: 
 	mkdir io
 	mkdir io/data
 	mkdir io/results
-	mkdir io/plots
-
-env:
-ifndef VIRTUAL_ENV
-	mkdir $(ENV)
-	python3 -m venv env
-else
-	@echo "You are already in a virtual environment."
-endif
-
-requirements:
-ifdef VIRTUAL_ENV
-	pip3 install -r requirements.txt
-else
-	@echo "Virtual environment not found. Please create it first using 'make env' followed by 'source env/bin/activate'."
-endif
+	mkdir io/plots	
 
 clean:
 	find . -type f -name "*.py[co]" -delete

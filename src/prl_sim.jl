@@ -1,8 +1,8 @@
+using Distributions, StatsFuns, Random
+using Plots, Colors
+include("./dmm.jl")
+include("./utils.jl")
 module PRL
-    using Distributions, StatsFuns, Random
-    using Plots, Colors
-    include("./gmm.jl")
-    include("./utils.jl")
 
     struct ModelParams
         mm::Float16
@@ -90,7 +90,7 @@ module PRL
 
             # Do MCMC
             n_iter = 1000
-            chn = GMM.do_mcmc(xinit, ones(2), target(GMM.Model()), proposal, n = n_iter)
+            chn = DMM.do_mcmc(xinit, ones(2), target(DMM.Model()), proposal, n = n_iter)
             theta = mean(chn.theta[round(Int, n_iter/2):end, :], dims = 1)
 
             push!(comps_init, (n = nk, theta = theta))
@@ -102,11 +102,11 @@ module PRL
                 @show draw
             end
 
-            znew, comps = GMM.init_mixture(xnew, xinit, zinit, deepcopy(comps_init), M)
+            znew, comps = DMM.init_mixture(xnew, xinit, zinit, deepcopy(comps_init), M)
             x = [xinit; xnew]; z = [zinit; znew]
 
             # consolidate
-            z, comps = GMM.update_mixture(x, z, comps, M; n_steps = n_steps)
+            z, comps = DMM.update_mixture(x, z, comps, M; n_steps = n_steps)
             push!(nof_cluster_centers, length(comps))
 
             # Get cluster mean to compute probability
@@ -156,7 +156,7 @@ module PRL
         n_history=5
 
         # init model
-        M = GMM.Model(pm = params.pm, mp = params.mp, pp = params.pp, alpha = params.alpha)
+        M = DMM.Model(pm = params.pm, mp = params.mp, pp = params.pp, alpha = params.alpha)
         
         all_probs = []
         all_std_devs = []
