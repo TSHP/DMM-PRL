@@ -2,7 +2,6 @@ module PRL
     using Distributions, StatsFuns, Random
     using Plots, Colors
     include("./dmm.jl")
-    include("./utils.jl")
 
     struct ModelParams
         mm::Float16
@@ -48,6 +47,11 @@ module PRL
         return seq
     end
 
+    # Anonymous functions for model, maybe move somewhere else
+    prior(m::Real, p::Real, M::NamedTuple) = logpdf(M.prior.prior_m, m) + logpdf(truncated(M.prior.prior_p, 0, Inf), p)
+    target(M) = (x, theta) -> sum(logpdf.(Normal(theta[1], 1/sqrt(theta[2])), x)) + prior(theta..., M)
+    proposal(theta) = [rand(Normal(theta[1], 1)), rand(truncated(Normal(theta[2], 1), 0, Inf))]
+
     function get_urn_probs(draws, n_history)
         urn_probs = []
         for draw in 2:length(draws)
@@ -68,7 +72,7 @@ module PRL
     function save_plots(all_draws, plots, filename)
         beads_plot = scatter(all_draws[3:length(all_draws)], linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
         yticks!([0, 1])
-        plot(plots[1], plots[3], beads_plot, layout = (3, 1), plot_title = "Estimated probability of the beads coming from urn 1", titlefontsize = 7)
+        plot(plots[1], beads_plot, layout = (2, 1), plot_title = "Estimated probability of the beads coming from urn 1", titlefontsize = 7)
         png("./io/plots/" * filename * ".png")
     end
 
@@ -102,11 +106,11 @@ module PRL
                 @show draw
             end
 
-            znew, comps = DMM.init_mixture(xnew, xinit, zinit, deepcopy(comps_init), M)
+            znew, comps = DMM.init_mixture(xnew, xinit, zinit, deepcopy(comps_init), M, target, proposal)
             x = [xinit; xnew]; z = [zinit; znew]
 
             # consolidate
-            z, comps = DMM.update_mixture(x, z, comps, M; n_steps = n_steps)
+            z, comps = DMM.update_mixture(x, z, comps, M; n_steps = n_steps, target, proposal)
             push!(nof_cluster_centers, length(comps))
 
             # Get cluster mean to compute probability
@@ -117,6 +121,7 @@ module PRL
             push!(probs, prob)
             push!(std_devs, std)
         end
+
         return (probs, std_devs, nof_cluster_centers)
     end
 
@@ -128,11 +133,8 @@ module PRL
         elseif method == "cools"
             n_phases = 3
             max_iter = 5
-        elseif method == "test"
-            n_phases = 1
-            max_iter = 1
         else
-            throw("Method "*string(method)*" not implemented")
+            throw("Method " * string(method) * " not implemented")
         end
         return (n_phases, max_iter)
     end
@@ -144,7 +146,7 @@ module PRL
         decisions[decisions .< decision_bnd[1]] .= 0
         decisions[decisions .>= decision_bnd[2]] .= 1
 
-        correct_seq = phase%2 == 0 ? zeros(seq_length) : ones(seq_length)
+        correct_seq = phase % 2 == 0 ? zeros(seq_length) : ones(seq_length)
 
         return sum(decisions .== correct_seq) >= correct_perc*seq_length
     end
@@ -173,7 +175,7 @@ module PRL
         # start simulation
         if output print("Starting simulation...\n") end
 
-        for phase in range(1,n_phases)
+        for phase in range(1, n_phases)
             if output @show phase end
             phase_learned = false
             on_iteration = 1
@@ -184,14 +186,12 @@ module PRL
                 if output @show iteration end
 
                 # generate appropriate draw sequence
-                if method=="test"
+                if method == "3p_10t"
                     draws = generate_bead_seq(method, phase)
-                elseif method=="3p_10t"
-                    draws = generate_bead_seq(method, phase)
-                elseif method=="cools"
+                elseif method == "cools"
                     draws = generate_bead_seq(method, phase)
                 else
-                    throw("Method "*string(method)*" not implemented")
+                    throw("Method " * string(method) * " not implemented")
                 end
 
                 # at first pass add initial 0, 1
@@ -213,9 +213,9 @@ module PRL
 
                 # update results (in a very ugly way. theoretically it should suffice just to use probs, std_devs etc. 
                 # HOWEVER. the plot function around line 238 will not take those as arguments. Somebody please fix this I tried for 3h. -KK)
-                segment_length = phase == 1 && iteration == 1 ? length(draws)-2 : length(draws)
-                append!(all_probs, probs[length(probs)-segment_length+1: length(probs)])
-                append!(all_std_devs, std_devs[length(std_devs)-segment_length+1: length(std_devs)])
+                segment_length = phase == 1 && iteration == 1 ? length(draws) - 2 : length(draws)
+                append!(all_probs, probs[(length(probs) - segment_length + 1): length(probs)])
+                append!(all_std_devs, std_devs[(length(std_devs)- segment_length + 1): length(std_devs)])
                 append!(all_nof_cluster_centers, nof_cluster_centers[length(nof_cluster_centers)-segment_length+1: length(nof_cluster_centers)])
 
                 # check if model learned state with newly added sequence
@@ -236,13 +236,12 @@ module PRL
             end
 
             if method == "cools"
-                # update learned phases and number of iterations needed
-                if phase_learned 
-                    append!(phases_learned, phase)
-                    append!(iterations_needed, on_iteration)
-                else
+                if !phase_learned 
                     break
                 end
+                # update learned phases and number of iterations needed
+                append!(phases_learned, phase)
+                append!(iterations_needed, on_iteration)
             end
         end
 

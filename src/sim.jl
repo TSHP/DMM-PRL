@@ -1,7 +1,7 @@
 module Simulations
     include("prl_sim.jl")
-    using DataFrames, CSV
-    using JLD2, FileIO
+    using DataFrames
+    using JLD2
     # run simulation of the prl experiment specified in "method"
     function run_prl_sim(models, n_iter, method, output=true)
         for model in models
@@ -41,11 +41,12 @@ module Simulations
             end
 
             # save results
-            CSV.write("./io/results/" * filename * "_model_params.csv", model_params_df)
-            CSV.write("./io/results/" * filename * "_draws.csv", draws_dict)
-            CSV.write("./io/results/" * filename * "_probs.csv", probs_dict)
-            CSV.write("./io/results/" * filename * "_std_devs.csv", std_devs_dict)
-            CSV.write("./io/results/" * filename * "_learning_results.csv", learning_results)
+            print("Saving results...")
+            save("./io/results/" * filename * "_model_params.jld2", "data", model_params_df)
+            save("./io/results/" * filename * "_draws.jld2", "data", draws_dict)
+            save("./io/results/" * filename * "_probs.jld2", "data", probs_dict)
+            save("./io/results/" * filename * "_std_devs.jld2", "data", std_devs_dict)
+            save("./io/results/" * filename * "_learning_results.jld2", "data", learning_results)
         end
     end
 end

@@ -1,6 +1,6 @@
 module DMM
     using Distributions, StatsFuns, Random
-    include("./utils.jl")
+
     ## MCMC inference for updating of parameters of component specific models
     function do_mcmc(x, theta, target::Function, proposal::Function; n=1000) 
         vec = Array{typeof(theta), 1}(undef, n)
@@ -40,7 +40,7 @@ module DMM
 
 
     ## do a first pass to initialize znew
-    function init_mixture(xnew, x, z, comps, M::NamedTuple)
+    function init_mixture(xnew, x, z, comps, M::NamedTuple, target::Function, proposal::Function)
         @assert length(x) == length(z)
         ##
         ## first pass to initialize znew
@@ -74,7 +74,7 @@ module DMM
     end
 
     ## do n_steps steps of Gibbs sampling
-    function update_mixture(x, z, comps, M; n_steps = 1)
+    function update_mixture(x, z, comps, M; n_steps = 1, target::Function, proposal::Function)
         @assert length(x) == length(z)
         @assert length(x) == sum([c.n for c in comps])
         n = length(x)
