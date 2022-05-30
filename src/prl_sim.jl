@@ -69,7 +69,7 @@ module PRL
         beads_plot = scatter(all_draws[3:length(all_draws)], linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
         yticks!([0, 1])
         plot(plots[1], plots[3], beads_plot, layout = (3, 1), plot_title = "Estimated probability of the beads coming from urn 1", titlefontsize = 7)
-        png("./io/plots/"*filename*".png")
+        png("./io/plots/" * filename * ".png")
     end
 
     # run a phase of the experiment

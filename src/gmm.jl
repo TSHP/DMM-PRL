@@ -139,22 +139,5 @@ module GMM
         alpha = alpha,
         m = m)
     end
-
-    # ## make mixture plot
-    # show_mixture(comps; xlim = [-6, 6], ylim = [0, 1]) = begin
-    #     lwd = 2
-    #     ns = [c.n for c in comps] 
-    #     n = ns ./ sum(ns)
-    #     p = plot(x -> pdf(MixtureModel(Normal[Normal(c.theta...) for c in comps],
-    #                                 n), x), xlim[1] , xlim[2],
-    #             framestyle=:box, legend = :none, linewidth = 3, color = :white, ylim = ylim)
-    #     d = [Normal(c.theta[1], 1/sqrt(c.theta[2])) for c in comps]
-    #     [plot!(x -> n[k] * pdf(d[k], x),
-    #         params(d[k])[1] - minimum([abs(3.5 * params(d[k])[2]), 4]),
-    #         params(d[k])[1] + minimum([abs(3.5 * params(d[k])[2]), 4]),
-    #         xlim = (xlim[1], xlim[2]),
-    #         linewidth = lwd, color = k)  for k in 1:length(d)]
-    #     p
-    # end
     
 end

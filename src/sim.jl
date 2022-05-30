@@ -12,7 +12,7 @@ module Simulations
             std_devs_dict = Dict()
             learning_results = Dict()
 
-            filename = "prl_urn_probs_"*model["name"]
+            filename = "prl_urn_probs_" * model["name"]
 
             # run n_iter iterations of experiment with model
             for it in range(1,n_iter)
