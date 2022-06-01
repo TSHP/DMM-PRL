@@ -97,31 +97,31 @@ module PRL
         std_devs = []
         nof_cluster_centers = []
 
+        # Initialize with just one cluster
+        comps_prev = []
+
+        # Draw from urn with a history of n_history
+        xprev = [urn_log_odds[1]]
+        nk = length(xprev)
+        zprev = repeat([1], nk)
+
+        # Do MCMC
+        n_iter = 1000
+        chn = DMM.do_mcmc(xprev, ones(2), target(DMM.Model()), proposal, n = n_iter)
+        theta = mean(chn.theta[round(Int, n_iter / 2):end, :], dims = 1)
+
+        push!(comps_prev, (n = nk, theta = theta))
+
         for draw in 2:length(urn_log_odds)
-            comps_init = []
-
-            # Draw from urn with a history of n_history
-            lower = draw > n_history ? draw - n_history : 1
-            xinit = urn_log_odds[lower:(draw - 1)]
-            nk = length(xinit)
-            zinit = repeat([1], nk)
-
-            # Do MCMC
-            n_iter = 1000
-            chn = DMM.do_mcmc(xinit, ones(2), target(DMM.Model()), proposal, n = n_iter)
-            theta = mean(chn.theta[round(Int, n_iter / 2):end, :], dims = 1)
-
-            push!(comps_init, (n = nk, theta = theta))
-
             # Draw new bead from urn
             xnew = [urn_log_odds[draw]]
 
             if output @show draw end
 
-            znew, comps = DMM.init_mixture(xnew, xinit, zinit, deepcopy(comps_init), M, target, proposal)
-            x = [xinit; xnew]; z = [zinit; znew]
+            znew, comps = DMM.init_mixture(xnew, xprev, zprev, deepcopy(comps_prev), M, target, proposal)
+            x = [xprev; xnew]; z = [zprev; znew]
 
-            # consolidate
+            # Consolidate
             z, comps = DMM.update_mixture(x, z, comps, M; n_steps = n_steps, target, proposal)
             push!(nof_cluster_centers, length(comps))
 
@@ -132,6 +132,20 @@ module PRL
             std = exp(pred_log_odd_std) / (1 + exp(pred_log_odd_std))
             push!(probs, prob)
             push!(std_devs, std)
+
+            # Update observations and clusters for next iteration
+            lower = draw + 1 > n_history ? draw + 1 - n_history : 1
+            xprev = urn_log_odds[lower:draw]
+            if lower > 1
+                comps[z[1]] = (n = comps[z[1]].n - 1, theta = comps[z[1]].theta)
+                popfirst!(z)
+            end
+            comps_prev = deepcopy(comps)
+            zprev = deepcopy(z)
+
+            # Do MCMC
+            n_iter = 1000
+            chn = DMM.do_mcmc(xprev, ones(2), target(DMM.Model()), proposal, n = n_iter)
         end
 
         return (probs, std_devs, nof_cluster_centers)
