@@ -38,9 +38,13 @@ module Evaluation
                 elseif method == "cools"
                     ph_learned = learning_results["phases_learned_" * string(it)]
                     it_needed = learning_results["iterations_needed_" * string(it)]
-                    l_p1 = length(ph_learned) > 0 ? it_needed[1] : 0
-                    l_p2 = length(ph_learned) > 1 ? it_needed[2] : 0
-                    l_p3 = length(ph_learned) > 2 ? it_needed[3] : 0
+                    l_p1 = length(it_needed) > 0 ? it_needed[1] : 0
+                    l_p2 = length(it_needed) > 1 ? it_needed[2] : 0
+                    l_p3 = length(it_needed) > 2 ? it_needed[3] : 0
+
+                    if l_p1 == 6 l_p1 -= 1 end
+                    if l_p2 == 6 l_p2 -= 1 end
+                    if l_p3 == 6 l_p3 -= 1 end
                     
                     if (l_p1 + l_p2 + l_p3) != 0
                         l = length(probs) / (l_p1 + l_p2 + l_p3)
@@ -72,8 +76,10 @@ module Evaluation
                     end
 
                 end
+                load(results_folder * filename * "_draws.jld2")["data"]
 
-                correct_decisions = sum(decisions .== correct)
+                nof_trials = Int(length(decisions)/10)
+                correct_decisions = sum(decisions .== correct)/nof_trials
 
                 push!(eval_prl_df, [it, correct_decisions, valid_lose_shift, valid_lose_stay, valid_win_shift, invalid_lose_shift, invalid_win_shift, model_name]) 
 

@@ -27,8 +27,8 @@ module PRL
 
     function generate_bead_seq(method, phase = 1)
         seq = []
-        urn_0 = Binomial(1, 0.15)
-        urn_1 = Binomial(1, 0.85)
+        urn_0 = Binomial(1, 0.2)
+        urn_1 = Binomial(1, 0.8)
         n_draws = 10
 
         if method == "3p_10t"
@@ -79,7 +79,7 @@ module PRL
     end
 
     # Return true if more then the specified percentage of "guesses" are correct
-    function check_learned(phase, probs, correct_perc = 0.8, decision_bnd = [0.5, 0.5])
+    function check_learned(phase, probs, correct_perc = 0.9, decision_bnd = [0.5, 0.5])
         seq_length = length(probs)
         decisions = deepcopy(probs)
         decisions[decisions .< decision_bnd[1]] .= 0
@@ -116,9 +116,7 @@ module PRL
             # Draw new bead from urn
             xnew = [urn_log_odds[draw]]
 
-            if output
-                @show draw
-            end
+            if output @show draw end
 
             znew, comps = DMM.init_mixture(xnew, xinit, zinit, deepcopy(comps_init), M, target, proposal)
             x = [xinit; xnew]; z = [zinit; znew]
@@ -206,16 +204,10 @@ module PRL
 
                 # Check if model learned state with newly added sequence
                 if method == "cools"
-                    start_current = (iteration - 1) * segment_length + 1  # start at 1, 11, 21, ...
+                    start_current = length(probs) - segment_length + 1  # start at 1, 11, 21, ...
                     end_current = length(probs)
                     phase_learned = check_learned(phase, probs[start_current:end_current])
                     if phase_learned on_iteration = iteration end
-                    if !phase_learned && iteration == max_iter 
-                        all_draws = all_draws[1:(length(all_draws) - 50)] # yes this is very hardcoded. no i'm not fixing it -KK
-                        all_probs = all_probs[1:(length(all_probs) - 50)]
-                        all_std_devs = all_std_devs[1:(length(all_std_devs) - 50)]
-                        all_nof_cluster_centers = all_nof_cluster_centers[1:(length(all_nof_cluster_centers) - 50)]
-                    end
                 end
                 
                 iteration += 1
@@ -223,6 +215,7 @@ module PRL
 
             if method == "cools"
                 if !phase_learned 
+                    append!(iterations_needed, iteration)
                     break
                 end
                 # Update learned phases and number of iterations needed
