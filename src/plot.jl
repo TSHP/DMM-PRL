@@ -4,6 +4,14 @@ module DMM_Plots
     using JLD2, FileIO
     include("constants.jl")
 
+    my_cols = [(red = 0, green = 8, blue = 20), # dark blue
+           (red = 0, green = 29, blue = 61), # slightly lighter dark blue
+           (red = 0, green = 53, blue = 102), # medium dark blue
+           (red = 255,green =  195, blue = 0), # yellow
+           (red = 255,green =  214, blue = 10)] # slightly lighter yellow
+    my_cols = [RGB([ai / 255 for ai in a]...) for a in my_cols]
+    my_cols = [my_cols; Colors.distinguishable_colors(6)]
+
     function generate_plots(method)
         make_bar_plots(method)
         make_probability_plots()
@@ -17,10 +25,10 @@ module DMM_Plots
         draws_control = load(results_folder * draw_control_file)["data"]
 
         for key in keys(probs_control)
-            prob_plot = plot(probs_control[key], xlabel = "Number of drawn beads", ylabel = "Estimated probability", linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
-            draws_plot = scatter(draws_control[key], xlabel = "Number of drawn beads", ylabel = "Bead drawn", linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
+            prob_plot = plot(probs_control[key], xlabel = "Number of drawn beads", ylabel = "Estimated probability", linewidth = 2, xlabelfontsize = 10, ylabelfontsize = 10, color=my_cols[3])
+            draws_plot = scatter(draws_control[key], xlabel = "Number of drawn beads", ylabel = "Bead drawn", linewidth = 2, xlabelfontsize = 10, ylabelfontsize = 10,  color=my_cols[3])
             yticks!([0, 1])
-            plot(prob_plot, draws_plot, layout = (2, 1), plot_title = "Estimated probability by control of the beads coming from urn 1", titlefontsize = 7)
+            plot(prob_plot, draws_plot, layout = (2, 1), plot_title = "Estimated probability of beads coming from urn 1 (control)", plot_titlefontsize=12, color=my_cols[3], fontfamily="serif-roman", legend=false)
             png(plots_folder * "probs_control_" * key * ".png")
         end
 
@@ -31,10 +39,13 @@ module DMM_Plots
         draws_patient = load(results_folder * draw_patient_file)["data"]
 
         for key in keys(probs_patient)
-            prob_plot = plot(probs_patient[key], xlabel = "Number of drawn beads", ylabel = "Estimated probability", linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
-            draws_plot = scatter(draws_patient[key], xlabel = "Number of drawn beads", ylabel = "Bead drawn", linewidth = 2, xlabelfontsize = 7, ylabelfontsize = 7, legendfontsize = 6, legend = false)
+            prob_plot = plot(probs_patient[key], xlabel="Number of drawn beads", ylabel="Estimated probability", 
+                            linewidth = 2, xlabelfontsize = 10, ylabelfontsize = 10, color=my_cols[3])
+            draws_plot = scatter(draws_patient[key], xlabel="Number of drawn beads", ylabel="Bead drawn", 
+                            linewidth = 2, xlabelfontsize = 10, ylabelfontsize = 10, color=my_cols[3])
             yticks!([0, 1])
-            plot(prob_plot, draws_plot, layout = (2, 1), plot_title = "Estimated probability by patient of the beads coming from urn 1", titlefontsize = 7)
+            plot(prob_plot, draws_plot, layout = (2, 1), plot_title = "Estimated probability of beads coming from urn 1 (patient)", 
+                plot_titlefontsize=12, color=my_cols[3], fontfamily="serif-roman", legend=false)
             png(plots_folder * "probs_patient_" * key * ".png")
         end
         
@@ -70,7 +81,7 @@ module DMM_Plots
                         push!(it_tmp, it_needed)
                     end
                     phases_reached_tmp = [count(>=(element),ph_tmp) for element in range(1,3) if element > 0] 
-                    phases_reached = [sum(phases_reached_tmp[idx:length(phases_reached_tmp)]) for (idx, element) in enumerate(phases_reached_tmp)] # how often each phase was reached
+                    phases_reached = [sum(phases_reached_tmp[idx:length(phases_reached_tmp)]) for (idx, _) in enumerate(phases_reached_tmp)]# how often each phase was reached
                     
                     # restructure number of iterations needed
                     iterations_tmp = []
@@ -110,28 +121,36 @@ module DMM_Plots
             label1 = model_names[1]
             label2 = model_names[2]
 
-            p_mean = groupedbar([mean[2] mean[1]], bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), xrotation = 20, labels = [label2 label1])
-            title!("Mean")
+            ticklabel[1] = "correct decisions/ \n #trials"
+
+            for (it,label) in enumerate(ticklabel[2:length(ticklabel)]) # make nicer label
+                ticklabel[it+1] = replace(label, "_" => " ")
+            end
+
+            p_mean = groupedbar([mean[2] mean[1]], bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), xrotation = 20, 
+                                labels = [label2 label1], color=[my_cols[2] my_cols[4]], title = "Mean", fontfamily="serif-roman", size=(720, 440))
             savefig(p_mean, plots_folder * "prl_urn_probs_eval_mean.png")
 
-            p_median = groupedbar([median[2] median[1]], bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), xrotation = 20, labels = [label2 label1])
-            title!("Median")
+            p_median = groupedbar([median[2] median[1]], bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), xrotation = 20, 
+                                labels = [label2 label1], color=[my_cols[2] my_cols[4]], title="Median", fontfamily="serif-roman", size=(720, 440))
             savefig(p_median, plots_folder * "prl_urn_probs_eval_median.png")
             
             if method == "cools"
                 ticklabel = range(1, length(results_learning[label2 * "_reached_phase"]))
                 p_learned_phase = groupedbar([results_learning[label2 * "_reached_phase"] results_learning[label1 * "_reached_phase"]], 
-                                                bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), labels = [label2 label1])
-                title!("Correctly learned phase")
+                                                bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), labels = [label2 label1], 
+                                                color=[my_cols[2] my_cols[4]], title="Correctly learned phase", fontfamily="serif-roman")
                 savefig(p_learned_phase, plots_folder * "correctly_learned_phase.png")
 
                 p_mean_tries = groupedbar([results_learning[label2 * "_mean_iterations"] results_learning[label1 * "_mean_iterations"]], 
-                                            bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), labels = [label2 label1])
+                                            bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), labels = [label2 label1], 
+                                            color=[my_cols[2] my_cols[4]], title="Mean tries until phase learned", fontfamily="serif-roman")
                 title!("Mean tries until phase learned")
                 savefig(p_mean_tries, plots_folder * "mean_tries.png")
 
                 p_median_tries = groupedbar([results_learning[label2 * "_median_iterations"] results_learning[label1 * "_median_iterations"]], 
-                                            bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), labels = [label2 label1])
+                                            bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), labels = [label2 label1], 
+                                            color=[my_cols[2] my_cols[4]], title="Median tries until phase learned", fontfamily="serif-roman")
                 title!("Median tries until phase learned")
                 savefig(p_median_tries, plots_folder * "median_tries.png")
             end
