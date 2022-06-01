@@ -8,7 +8,7 @@ M2 = Dict([("name", "control"), ("mm", 0), ("pm", 0.01), ("mp", 1 / 1000), ("pp"
 
 models = [M1, M2]
 n_runs = 10
-method = "cools" # possible methods: 3p_10t (3 phases à 10 trials), cools (3 phases, at most 50 trials, incremented in steps of 10)
+method = "cools" # Possible methods: 3p_10t (3 phases à 10 trials), cools (3 phases, at most 50 trials, incremented in steps of 10)
 
 # Run simulation
 Simulations.run_prl_sim(models, n_runs, method)
