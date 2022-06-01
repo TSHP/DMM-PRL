@@ -1,15 +1,32 @@
 # Dirichlet Mixture Model for Probabilistic Reversal Learning
-## Description (TODO)
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+## Description
+An application of the model from ["A generative framework for the study of delusions"](https://www.sciencedirect.com/science/article/pii/S0920996420306277) developed by Tore Erdmann and Christoph Mathys. The model is used for simulating probabilistic reversal learning tasks performed by delusional and non-delusional agents. The implemented probabilistic reversal learning task is based on ["Defining the neural mechanisms of probabilistic reversal learning using event-related functional magnetic resonance imaging"](https://pubmed.ncbi.nlm.nih.gov/12040063/).
 
-## Requirements (TODO)
-Make and Julia -> More detailed
+## Requirements
+The code was developed and tested using [Julia](https://julialang.org/) Version 1.7.0-rc1 and requires the following packages:
+* DataFrames
+* Distributions
+* FileIO
+* JLD2
+* Plots
+* Random
+* StatsBase
+* StatsFuns
+* StatsPlots
+
+For convenience, we include a Julia environment with the above packages in the repository. \
+Additionally, we use Make to generate the directories for the output of the code, however, it is not required as the directories can be manualy created.
 
 ## Setting up the project
 To setup the required directories run the following command in the commandline
 ```
 make init
 ```
+The directories can also be setup manually in the root directory of the repository. The following directories should be created:
+* io
+* io/plots
+* io/results
+
 Afterwards, start the Julia REPL and run the following command to go into pkg mode
 ```
 ]
@@ -20,35 +37,20 @@ activate .
 ```
 to activate the Julia envrionment.
 
-## Usage (TODO)
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Visuals (TODO)
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://gitlab.ethz.ch/krasnopk/fs22_tn_project/-/settings/integrations)
-
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
+## Usage
+To generate simulation results run the following command in Julia REPL:
+```
+include("main.jl")
+```
+To run simulations with different parameters, change the parameters in the main.jl file. The following parameters can be changed:
+* `method`: Which experiment to run. Can be either "3p_10t" for 3 phases with 10 trials or "cools" for 3 phases with at most 50 trials incremented in steps of 10
+* `mu_tau_c`: Expected precision of the control agent
+* `mu_tau_p`: Expected precision of the patient agent
+* `n_runs`: How many runs to simulate per agent
+* `n_history`: Models the memory of an agent. The agent will remember the last `n_history` trials.
 
 ## Support
 Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
 
 ## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
+We want to thank Tore Erdmann, Christoph Mathys and Alexander Hess for their support and guidance during this projects.

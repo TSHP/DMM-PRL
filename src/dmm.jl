@@ -1,7 +1,7 @@
 module DMM
     using Distributions, StatsFuns, Random
 
-    ## MCMC inference for updating of parameters of component specific models
+    # MCMC inference for updating of parameters of component specific models
     function do_mcmc(x, theta, target::Function, proposal::Function; n=1000) 
         vec = Array{typeof(theta), 1}(undef, n)
         ll = Array{Real, 1}(undef, n)
@@ -26,11 +26,11 @@ module DMM
         return nothing
     end
 
-    ## compute predictive probabilities for label assingment
+    # Compute predictive probabilities for label assingment
     function predictive_prob(ynew, phi, j, comps, M)
         K = length(comps)
         n = sum([c.n for c in comps])
-        ## compute assignment probabilities
+        # Compute assignment probabilities
         if j <= K
             log(comps[j].n / (n - 1 + M.alpha)) + logpdf(M.likelihood(phi[j]), ynew)
         else
@@ -39,28 +39,26 @@ module DMM
     end
 
 
-    ## do a first pass to initialize znew
+    # Do a first pass to initialize znew
     function init_mixture(xnew, x, z, comps, M::NamedTuple, target::Function, proposal::Function)
         @assert length(x) == length(z)
-        ##
-        ## first pass to initialize znew
-        ##
+        # First pass to initialize znew
         nnew = length(xnew)
         znew = zeros(Int, nnew)
         alph = M.alpha[1]
         m = M.m
         n = nnew + sum([c.n for c in comps])
         for i in 1:nnew
-            ## create canidates
+            # Create candidates
             phi = [[c.theta for c in comps];
                 [[rand(p) for p in M.prior] for rep in 1:m]]
             ps = [predictive_prob(xnew[i], phi, j, comps, M) for j in 1:length(phi)]
             ps .= exp.(ps .- logsumexp(ps))
             znew[i] = rand(Categorical(ps))
             if znew[i] > length(comps)
-                ## create new components with the sampled parameters phi[z]
+                # Create new components with the sampled parameters phi[z]
                 push!(comps, (n = 1, theta = phi[znew[i]]))
-                ## set to K+1
+                # Set to K + 1
                 znew[i] = length(comps) 
             else 
                 n_iter = 10
@@ -73,7 +71,7 @@ module DMM
         znew, comps
     end
 
-    ## do n_steps steps of Gibbs sampling
+    # Do n_steps steps of Gibbs sampling
     function update_mixture(x, z, comps, M; n_steps = 1, target::Function, proposal::Function)
         @assert length(x) == length(z)
         @assert length(x) == sum([c.n for c in comps])
@@ -81,22 +79,18 @@ module DMM
         m = M.m
         alph = M.alpha[1]
         for iter in 1:n_steps
-            # @show iter
-            # @show comps[1].n
-            ## iterate over observations
+            # Iterate over observations
             inds = shuffle(1:length(x))
             for i in inds
-                ##
-                ## create candidates
-                ##
+                # Create candidates
                 ni = comps[z[i]].n
                 if ni == 1
-                    ## if last element of a cluster,
-                    ## remove that cluster, but use phi
-                    ## in proposal (at position K^{-}+1)
+                    # If last element of a cluster,
+                    # Remove that cluster, but use phi
+                    # In proposal (at position K^{-}+1)
                     j = z[i]; oldcomp = comps[j]
                     comps = comps[setdiff(1:length(comps), j)]
-                    ## fill gap in indices
+                    # Fill gap in indices
                     z[z .>= j] .= z[z .>= j] .- 1
                     phi = [[comps[j].theta for j in 1:length(comps)];
                         [oldcomp.theta'];
@@ -112,9 +106,9 @@ module DMM
                 ps .= exp.(ps .- logsumexp(ps))
                 z[i] = rand(Categorical(ps))
                 if z[i] >= length(comps)
-                    ## create new components with the sampled parameters phi[z]
+                    # Create new components with the sampled parameters phi[z]
                     push!(comps, (n = 1, theta = phi[z[i]]))
-                    ## set to K+1
+                    # Set to K + 1
                     z[i] = length(comps) 
                 else 
                     n_iter = 10
@@ -129,7 +123,7 @@ module DMM
         z, comps
     end
 
-    ## setup model M
+    # Setup model M
     function Model(;mm = 0.0, pm = .1, mp = 1, pp = .1, alpha = 1, m = 2)
         (likelihood = (theta) -> Normal(theta[1], 1/sqrt(theta[2])),
         prior = (prior_m = Normal(mm, 1/sqrt(pm)),
