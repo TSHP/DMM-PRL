@@ -5,7 +5,7 @@ include("./src/plot.jl")
 # Experiment to simulate
 method = "cools"
 
-# Expected precision of control agent and patient egent respectively
+# Expected precision of control agent and patient agent respectively
 mu_tau_c = 1000
 mu_tau_p = 1 / 1000
 
@@ -15,8 +15,8 @@ n_history = 5
 n_runs = 10
 
 # Init model parameters
-M1 = Dict([("name", "patient"), ("mm", 0), ("pm", 0.01), ("mp", mu_tau_c), ("pp", 10), ("alpha", 1), ("m", 1.5)])
-M2 = Dict([("name", "control"), ("mm", 0), ("pm", 0.01), ("mp", mu_tau_p), ("pp", 10), ("alpha", 1), ("m", 1.5)])
+M1 = Dict([("name", "patient"), ("mm", 0), ("pm", 0.01), ("mp", mu_tau_p), ("pp", 10), ("alpha", 1), ("m", 1.5)])
+M2 = Dict([("name", "control"), ("mm", 0), ("pm", 0.01), ("mp", mu_tau_c), ("pp", 10), ("alpha", 1), ("m", 1.5)])
 
 models = [M1, M2]
 
