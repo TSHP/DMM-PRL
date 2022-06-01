@@ -5,7 +5,7 @@ module Simulations
     include("constants.jl")
 
     # Run simulation of the probabilistic reversal learning experiment specified in "method"
-    function run_prl_sim(models, n_iter, method, output = false)
+    function run_prl_sim(models, n_history, n_iter, method, output = false)
         for model in models
 
             # Initialize empty dataframe and dictionaries to store results
@@ -32,7 +32,7 @@ module Simulations
                 end
 
                 # Run simulation
-                results = PRL.run_experiment(params, it, method, output)
+                results = PRL.run_experiment(params, n_history, it, method, output)
 
                 draws_dict[string(it)] = getfield(results, :draws)[3:length(getfield(results, :draws))]
                 probs_dict[string(it)] = getfield(results, :probabilities)

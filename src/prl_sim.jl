@@ -137,11 +137,8 @@ module PRL
         return (probs, std_devs, nof_cluster_centers)
     end
 
-    function run_experiment(params, seed, method, output = false)
+    function run_experiment(params, n_history, seed, method, output = false)
         Random.seed!(seed)
-
-        # Average over n_history past draws for log odds
-        n_history = 5
 
         # Init model
         M = DMM.Model(pm = params.pm, mp = params.mp, pp = params.pp, alpha = params.alpha)

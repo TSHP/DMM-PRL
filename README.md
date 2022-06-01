@@ -50,7 +50,10 @@ To run simulations with different parameters, change the parameters in the main.
 * `n_history`: Models the memory of an agent. The agent will remember the last `n_history` trials.
 
 ## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+For questions concerning the project, please contact us at: \
+Wiona Glänzer, wglaenzer@ethz.ch \
+Katarzyna Kransapolska, krasnopk@ethz.ch \
+Timofey Shpakov, tshpakov@ethz.ch
 
 ## Authors and acknowledgment
 We want to thank Tore Erdmann, Christoph Mathys and Alexander Hess for their support and guidance during this projects.
