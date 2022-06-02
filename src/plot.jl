@@ -21,31 +21,47 @@ module DMM_Plots
     function make_probability_plots()
         prob_control_file = [file for file in readdir(results_folder) if occursin("probs", file) && occursin("control", file)][1]
         draw_control_file = [file for file in readdir(results_folder) if occursin("draws", file) && occursin("control", file)][1]
+        clusters_control_file = [file for file in readdir(results_folder) if occursin("clusters", file) && occursin("control", file)][1]
+        cluster_switches_control_file = [file for file in readdir(results_folder) if occursin("cluster_switches", file) && occursin("control", file)][1]
 
         probs_control = load(results_folder * prob_control_file)["data"]
         draws_control = load(results_folder * draw_control_file)["data"]
+        clusters_control = load(results_folder * clusters_control_file)["data"]
+        cluster_switches_control = load(results_folder * cluster_switches_control_file)["data"]
 
         for key in keys(probs_control)
-            prob_plot = plot(probs_control[key], xlabel = "Number of drawn beads", ylabel = "Estimated probability", linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12, color=my_cols[3])
+            prob_plot = plot(probs_control[key], xlabel = "Number of drawn beads", ylabel = "Estimated probability", linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12, color = my_cols[3])
+            cluster_plot = plot(clusters_control[key], xlabel = "Number of drawn beads", ylabel = "#Clusters", linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12, color = my_cols[3])
+            cluster_switches_plot = scatter(cluster_switches_control[key], xlabel = "Number of drawn beads", ylabel = "New cluster", linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12,  color=my_cols[3])
+            yticks!([0, 1])
             draws_plot = scatter(draws_control[key], xlabel = "Number of drawn beads", ylabel = "Bead drawn", linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12,  color=my_cols[3])
             yticks!([0, 1])
-            plot(prob_plot, draws_plot, layout = (2, 1), plot_title = "PRL Task (control)", plot_titlefontsize=16, color=my_cols[3], fontfamily="serif-roman", legend=false, size=(700,450))
+            plot(prob_plot, cluster_plot, cluster_switches_plot, draws_plot, layout = (4, 1), plot_title = "PRL Task (control)", plot_titlefontsize = 16, color = my_cols[3], fontfamily = "serif-roman", legend = false, size = (700,450))
             png(plots_folder * "probs_control_" * key * ".png")
         end
 
         prob_patient_file = [file for file in readdir(results_folder) if occursin("probs", file) && occursin("patient", file)][1]
         draw_patient_file = [file for file in readdir(results_folder) if occursin("draws", file) && occursin("patient", file)][1]
+        clusters_patient_file = [file for file in readdir(results_folder) if occursin("clusters", file) && occursin("patient", file)][1]
+        cluster_switches_patient_file = [file for file in readdir(results_folder) if occursin("cluster_switches", file) && occursin("patient", file)][1]
 
         probs_patient = load(results_folder * prob_patient_file)["data"]
         draws_patient = load(results_folder * draw_patient_file)["data"]
+        cluster_patient = load(results_folder * clusters_patient_file)["data"]
+        cluster_switches_patient = load(results_folder * cluster_switches_patient_file)["data"]
 
         for key in keys(probs_patient)
             prob_plot = plot(probs_patient[key], xlabel="Number of drawn beads", ylabel="Estimated probability", 
                             linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12, color=my_cols[3])
+            cluster_plot = plot(cluster_patient[key], xlabel="Number of drawn beads", ylabel="#Clusters", 
+                            linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12, color=my_cols[3])
+            cluster_switches_plot = scatter(cluster_switches_patient[key], xlabel="Number of drawn beads", ylabel = "New cluster",
+                            linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12,  color=my_cols[3])
+            yticks!([0, 1])
             draws_plot = scatter(draws_patient[key], xlabel="Number of drawn beads", ylabel="Bead drawn", 
                             linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12, color=my_cols[3])
             yticks!([0, 1])
-            plot(prob_plot, draws_plot, layout = (2, 1), plot_title = "PRL Task (patient)", 
+            plot(prob_plot, cluster_plot, cluster_switches_plot, draws_plot, layout = (4, 1), plot_title = "PRL Task (patient)", 
                 plot_titlefontsize=16, color=my_cols[3], fontfamily="serif-roman", legend=false, size=(700,450))
             png(plots_folder * "probs_patient_" * key * ".png")
         end
@@ -81,8 +97,7 @@ module DMM_Plots
                         it_needed = tmp["iterations_needed_" * string(it)]
                         push!(it_tmp, it_needed)
                     end
-                    phases_reached_tmp = [count(>=(element),ph_tmp) for element in range(1,3) if element > 0] 
-                    phases_reached = [sum(phases_reached_tmp[idx:length(phases_reached_tmp)]) for (idx, _) in enumerate(phases_reached_tmp)]# how often each phase was reached
+                    phases_reached = [count(>=(element),ph_tmp) for element in range(1,3) if element > 0] 
                     
                     # restructure number of iterations needed
                     iterations_tmp = []

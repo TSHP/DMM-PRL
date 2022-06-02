@@ -6,13 +6,13 @@ include("./src/plot.jl")
 method = "cools"
 
 # Expected precision of control agent and patient egent respectively
-mu_tau_c = 1000
-mu_tau_p = 1 / 1000
+mu_tau_c = 100
+mu_tau_p = 1 / 100
 
 # Number of remembered odds
-n_history = 10
+n_history = 5
 
-n_runs = 10
+n_runs = 20
 
 # Init model parameters
 M1 = Dict([("name", "patient"), ("mm", 0), ("pm", 0.01), ("mp", mu_tau_p), ("pp", 10), ("alpha", 1), ("m", 1.5)])

@@ -16,6 +16,8 @@ module PRL
         draws::Array
         probabilities::Array
         std_deviations::Array
+        no_clusters::Array
+        cluster_switches::Array
         phases_learned::Array
         iterations_needed::Array
     end
@@ -96,6 +98,7 @@ module PRL
         probs = []
         std_devs = []
         nof_cluster_centers = []
+        cluster_switches = []
 
         # Initialize with just one cluster
         comps_prev = []
@@ -125,6 +128,10 @@ module PRL
             z, comps = DMM.update_mixture(x, z, comps, M; n_steps = n_steps, target, proposal)
             push!(nof_cluster_centers, length(comps))
 
+            # Check if observation is assigned to a new cluster or existing one
+            new_cluster_check = comps[last(z)].n == 1
+            push!(cluster_switches, new_cluster_check)
+
             # Get cluster mean to compute probability
             pred_log_odd = comps[last(z)].theta[1]
             pred_log_odd_std = comps[last(z)].theta[2]
@@ -136,19 +143,28 @@ module PRL
             # Update observations and clusters for next iteration
             lower = draw + 1 > n_history ? draw + 1 - n_history : 1
             xprev = urn_log_odds[lower:draw]
+
+            # Forget oldest observation and remove it's cluster if the cluster is empty
             if lower > 1
                 comps[z[1]] = (n = comps[z[1]].n - 1, theta = comps[z[1]].theta)
+                if comps[z[1]].n == 0
+                    splice!(comps, z[1])
+                    # Shift all labels higher than the removed one
+                    for i in 1:length(z)
+                        if z[i] > z[1]
+                            z[i] = z[i] - 1
+                        end
+                    end
+                end
                 popfirst!(z)
             end
+
+            # New cluster centers are used in the next iteration as the initial clusters
             comps_prev = deepcopy(comps)
             zprev = deepcopy(z)
-
-            # Do MCMC
-            n_iter = 1000
-            chn = DMM.do_mcmc(xprev, ones(2), target(DMM.Model()), proposal, n = n_iter)
         end
 
-        return (probs, std_devs, nof_cluster_centers)
+        return (probs, std_devs, nof_cluster_centers, cluster_switches)
     end
 
     function run_experiment(params, n_history, seed, method, output = false)
@@ -161,6 +177,7 @@ module PRL
         all_std_devs = []
         all_nof_cluster_centers = []
         all_draws = []
+        all_cluster_switches = []
 
         # Get experiment settings
         n_phases, max_iter = setup_experiment(method)
@@ -205,13 +222,14 @@ module PRL
                 clean_log_odds!(urn_log_odds)
 
                 # Run experiment
-                probs, std_devs, nof_cluster_centers = run_phase(M, urn_log_odds, n_history, output)
+                probs, std_devs, nof_cluster_centers, cluster_switches = run_phase(M, urn_log_odds, n_history, output)
 
                 # Update results
                 segment_length = phase == 1 && iteration == 1 ? length(draws) - 2 : length(draws)
                 append!(all_probs, probs[(length(probs) - segment_length + 1): length(probs)])
                 append!(all_std_devs, std_devs[(length(std_devs)- segment_length + 1): length(std_devs)])
-                append!(all_nof_cluster_centers, nof_cluster_centers[length(nof_cluster_centers)-segment_length+1: length(nof_cluster_centers)])
+                append!(all_nof_cluster_centers, nof_cluster_centers[length(nof_cluster_centers) - segment_length + 1: length(nof_cluster_centers)])
+                append!(all_cluster_switches, cluster_switches[length(cluster_switches) - segment_length + 1: length(cluster_switches)])
 
                 # Check if model learned state with newly added sequence
                 if method == "cools"
@@ -235,6 +253,6 @@ module PRL
             end
         end
 
-        return Results(all_draws, all_probs, all_std_devs, phases_learned, iterations_needed)
+        return Results(all_draws, all_probs, all_std_devs, all_nof_cluster_centers, all_cluster_switches, phases_learned, iterations_needed)
     end
 end
