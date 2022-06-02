@@ -15,10 +15,10 @@ module DMM_Plots
 
     function generate_plots(method)
         make_bar_plots(method)
-        make_probability_plots()
+        make_probability_plots(method)
     end
 
-    function make_probability_plots()
+    function make_probability_plots(method)
         prob_control_file = [file for file in readdir(results_folder) if occursin("probs", file) && occursin("control", file)][1]
         draw_control_file = [file for file in readdir(results_folder) if occursin("draws", file) && occursin("control", file)][1]
         clusters_control_file = [file for file in readdir(results_folder) if occursin("clusters", file) && occursin("control", file)][1]
@@ -115,6 +115,32 @@ module DMM_Plots
             png(plots_folder * "probs_patient_" * key * ".png")
         end
         
+        if method == "3p_10t"
+            sum_switches_control = sum([cluster_switches_control[key] for key in keys(probs_control)])
+            sum_switches_patient = sum([cluster_switches_patient[key] for key in keys(probs_patient)])
+            draws_plot = scatter(draws_control["1"], 
+                            xlabel = "Number of drawn beads",
+                            ylabel = "Bead drawn", 
+                            xlabelfontsize = 12, 
+                            yticks=[0, 1],
+                            color = my_cols[3],
+                            legend=false,
+                            bottom_margin=5mm)
+            sum_switches_plot = groupedbar([sum_switches_control sum_switches_patient],
+                                            bar_position = :dodge, bar_width = 1, labels = ["control" "patient"], left_margin=5mm, 
+                                                color=[my_cols[2] my_cols[4]], fontfamily="serif-roman", xlims=[1,30], ylabel="Sum of cluster \n switches")
+            plot(sum_switches_plot, draws_plot, 
+                layout = (2, 1), 
+                plot_title = "Number of cluster switches at drawn bead", 
+                plot_titlefontsize = 16, 
+                ylabelfontsize = 12, 
+                linewidth=2,
+                fontfamily = "serif-roman", 
+                size = (800,450))
+            savefig(plots_folder * "sum_switches.png")
+
+        end
+
     end
 
     function make_bar_plots(method)
@@ -186,7 +212,7 @@ module DMM_Plots
             label1 = model_names[1]
             label2 = model_names[2]
 
-            ticklabel[1] = "correct decisions/ \n #trials"
+            ticklabel[1] = "correct decisions/ \n attempt"
 
             for (it,label) in enumerate(ticklabel[2:length(ticklabel)])
                 ticklabel[it+1] = replace(label, "_" => " ")
@@ -194,12 +220,12 @@ module DMM_Plots
 
             p_mean = groupedbar([mean[2] mean[1]], bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), xrotation = 25, 
                                 labels = [label2 label1], color=[my_cols[2] my_cols[4]], title = "Mean", fontfamily="serif-roman", size=(1200, 800),
-                                titlefontsize=24, tickfontsize=20, legendfontsize=20, bottommargin=6mm, leftmargin=12mm)
+                                titlefontsize=24, tickfontsize=20, legendfontsize=20, bottommargin=6mm, leftmargin=22mm)
             savefig(p_mean, plots_folder * "prl_urn_probs_eval_mean.png")
 
             p_median = groupedbar([median[2] median[1]], bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), xrotation = 25, 
                                 labels = [label2 label1], color=[my_cols[2] my_cols[4]], title="Median", fontfamily="serif-roman", size=(1200, 800),
-                                titlefontsize=24, tickfontsize=20, legendfontsize=20, bottommargin=6mm, leftmargin=12mm)
+                                titlefontsize=24, tickfontsize=20, legendfontsize=20, bottommargin=6mm, leftmargin=22mm)
             savefig(p_median, plots_folder * "prl_urn_probs_eval_median.png")
             
             if method == "cools"
