@@ -15,6 +15,8 @@ module Simulations
             probs_dict = Dict()
             std_devs_dict = Dict()
             learning_results = Dict()
+            no_clusters_dict = Dict()
+            cluster_switches = Dict()
 
             # Run n_iter iterations of experiment with model
             for it in range(1, n_iter)
@@ -37,6 +39,8 @@ module Simulations
                 draws_dict[string(it)] = getfield(results, :draws)[3:length(getfield(results, :draws))]
                 probs_dict[string(it)] = getfield(results, :probabilities)
                 std_devs_dict[string(it)] = getfield(results, :std_deviations)
+                no_clusters_dict[string(it)] = getfield(results, :no_clusters)
+                cluster_switches[string(it)] = getfield(results, :cluster_switches)
 
                 learning_results["phases_learned_" * string(it)] = getfield(results, :phases_learned)
                 learning_results["iterations_needed_" * string(it)] = getfield(results, :iterations_needed)                
@@ -48,6 +52,8 @@ module Simulations
             save(results_folder * filename * "_draws.jld2", "data", draws_dict)
             save(results_folder * filename * "_probs.jld2", "data", probs_dict)
             save(results_folder * filename * "_std_devs.jld2", "data", std_devs_dict)
+            save(results_folder * filename * "_no_clusters.jld2", "data", no_clusters_dict)
+            save(results_folder * filename * "_cluster_switches.jld2", "data", cluster_switches)
             save(results_folder * filename * "_learning_results.jld2", "data", learning_results)
         end
     end
