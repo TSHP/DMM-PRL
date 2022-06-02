@@ -29,14 +29,44 @@ module DMM_Plots
         clusters_control = load(results_folder * clusters_control_file)["data"]
         cluster_switches_control = load(results_folder * cluster_switches_control_file)["data"]
 
+        yticks_prob = [0,0.2,0.4,0.6,0.8,1]
+        ylims_prob=[0,1]
+        yticks_cluster = range(2,6)
+        ylims_cluster = [2,6]
+
         for key in keys(probs_control)
-            prob_plot = plot(probs_control[key], xlabel = "Number of drawn beads", ylabel = "Estimated probability", linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12, color = my_cols[3])
-            cluster_plot = plot(clusters_control[key], xlabel = "Number of drawn beads", ylabel = "#Clusters", linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12, color = my_cols[3])
-            cluster_switches_plot = scatter(cluster_switches_control[key], xlabel = "Number of drawn beads", ylabel = "New cluster", linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12,  color=my_cols[3])
-            yticks!([0, 1])
-            draws_plot = scatter(draws_control[key], xlabel = "Number of drawn beads", ylabel = "Bead drawn", linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12,  color=my_cols[3])
-            yticks!([0, 1])
-            plot(prob_plot, cluster_plot, cluster_switches_plot, draws_plot, layout = (4, 1), plot_title = "PRL Task (control)", plot_titlefontsize = 16, color = my_cols[3], fontfamily = "serif-roman", legend = false, size = (700,450))
+            prob_plot = plot(probs_control[key], 
+                            ylabel = "Estimated \n probability",
+                            color = my_cols[3],
+                            yticks=yticks_prob,
+                            ylims=ylims_prob)
+            cluster_plot = plot(clusters_control[key], 
+                            ylabel = "#Clusters",
+                            color = my_cols[3],
+                            yticks=yticks_cluster,
+                            ylims=ylims_cluster)
+            cluster_switches_plot = scatter(cluster_switches_control[key], 
+                            ylabel = "Assigned \n new cluster", 
+                            yticks=[],
+                            color = my_cols[4],
+                            markerstrokecolor= my_cols[4],
+                            markersize=0)
+            vline!(findall(x->x==true, cluster_switches_control[key]), color = my_cols[4])
+            draws_plot = scatter(draws_control[key], 
+                            xlabel = "Number of drawn beads",
+                            ylabel = "Bead drawn", 
+                            xlabelfontsize = 12, 
+                            yticks=[0, 1],
+                            color = my_cols[3])
+            plot(prob_plot, cluster_switches_plot, cluster_plot, draws_plot, 
+                            layout = (4, 1), 
+                            plot_title = "PRL Task (control)", 
+                            plot_titlefontsize = 16, 
+                            ylabelfontsize = 12, 
+                            linewidth=2,
+                            fontfamily = "serif-roman", 
+                            legend = false, 
+                            size = (700,650))
             png(plots_folder * "probs_control_" * key * ".png")
         end
 
@@ -51,18 +81,37 @@ module DMM_Plots
         cluster_switches_patient = load(results_folder * cluster_switches_patient_file)["data"]
 
         for key in keys(probs_patient)
-            prob_plot = plot(probs_patient[key], xlabel="Number of drawn beads", ylabel="Estimated probability", 
-                            linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12, color=my_cols[3])
-            cluster_plot = plot(cluster_patient[key], xlabel="Number of drawn beads", ylabel="#Clusters", 
-                            linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12, color=my_cols[3])
-            cluster_switches_plot = scatter(cluster_switches_patient[key], xlabel="Number of drawn beads", ylabel = "New cluster",
-                            linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12,  color=my_cols[3])
-            yticks!([0, 1])
-            draws_plot = scatter(draws_patient[key], xlabel="Number of drawn beads", ylabel="Bead drawn", 
-                            linewidth = 2, xlabelfontsize = 12, ylabelfontsize = 12, color=my_cols[3])
-            yticks!([0, 1])
-            plot(prob_plot, cluster_plot, cluster_switches_plot, draws_plot, layout = (4, 1), plot_title = "PRL Task (patient)", 
-                plot_titlefontsize=16, color=my_cols[3], fontfamily="serif-roman", legend=false, size=(700,450))
+            prob_plot = plot(probs_patient[key], 
+                            ylabel="Estimated \n probability", 
+                            color=my_cols[3],
+                            yticks=yticks_prob,
+                            ylims=ylims_prob)
+            cluster_plot = plot(cluster_patient[key], 
+                            ylabel="#Clusters", 
+                            color=my_cols[3],
+                            yticks=yticks_cluster,
+                            ylims=ylims_cluster)
+            cluster_switches_plot = scatter(cluster_switches_patient[key],
+                            ylabel = "Assigned \n new cluster", 
+                            yticks=[], 
+                            color=my_cols[4],
+                            markerstrokecolor=my_cols[4],
+                            markersize=0)
+            vline!(findall(x->x==true, cluster_switches_patient[key]), color=my_cols[4])
+            draws_plot = scatter(draws_patient[key],
+                            xlabel="Number of drawn beads",
+                            ylabel="Bead drawn", 
+                            xlabelfontsize = 12, 
+                            color=my_cols[3], 
+                            yticks=[0, 1])
+            plot(prob_plot, cluster_switches_plot, cluster_plot, draws_plot, 
+                            layout = (4, 1), 
+                            plot_title = "PRL Task (patient)", 
+                            plot_titlefontsize=16, 
+                            linewidth=2,
+                            fontfamily="serif-roman", 
+                            legend=false, 
+                            size=(700,650))
             png(plots_folder * "probs_patient_" * key * ".png")
         end
         

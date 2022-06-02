@@ -5,7 +5,7 @@ include("./src/plot.jl")
 # Experiment to simulate
 method = "cools"
 
-# Expected precision of control agent and patient egent respectively
+# Expected precision of control agent and patient agent respectively
 mu_tau_c = 100
 mu_tau_p = 1 / 100
 
