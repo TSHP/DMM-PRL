@@ -29,44 +29,44 @@ module DMM_Plots
         clusters_control = load(results_folder * clusters_control_file)["data"]
         cluster_switches_control = load(results_folder * cluster_switches_control_file)["data"]
 
-        yticks_prob = [0,0.2,0.4,0.6,0.8,1]
-        ylims_prob=[0,1]
-        yticks_cluster = range(2,6)
-        ylims_cluster = [2,6]
+        yticks_prob = [0, 0.2, 0.4, 0.6, 0.8, 1]
+        ylims_prob=[0, 1]
+        yticks_cluster = range(2, 6)
+        ylims_cluster = [2, 6]
 
         for key in keys(probs_control)
             prob_plot = plot(probs_control[key], 
                             ylabel = "Estimated \n probability",
                             color = my_cols[3],
-                            yticks=yticks_prob,
-                            ylims=ylims_prob)
+                            yticks = yticks_prob,
+                            ylims = ylims_prob)
             cluster_plot = plot(clusters_control[key], 
                             ylabel = "#Clusters",
                             color = my_cols[3],
-                            yticks=yticks_cluster,
-                            ylims=ylims_cluster)
+                            yticks = yticks_cluster,
+                            ylims = ylims_cluster)
             cluster_switches_plot = scatter(cluster_switches_control[key], 
                             ylabel = "Assigned \n new cluster", 
-                            yticks=[],
+                            yticks = [],
                             color = my_cols[4],
-                            markerstrokecolor= my_cols[4],
-                            markersize=0)
-            vline!(findall(x->x==true, cluster_switches_control[key]), color = my_cols[4])
+                            markerstrokecolor = my_cols[4],
+                            markersize = 0)
+            vline!(findall(x->x, cluster_switches_control[key]), color = my_cols[4])
             draws_plot = scatter(draws_control[key], 
                             xlabel = "Number of drawn beads",
                             ylabel = "Bead drawn", 
                             xlabelfontsize = 12, 
-                            yticks=[0, 1],
+                            yticks = [0, 1],
                             color = my_cols[3])
             plot(prob_plot, cluster_switches_plot, cluster_plot, draws_plot, 
                             layout = (4, 1), 
                             plot_title = "PRL Task (control)", 
                             plot_titlefontsize = 16, 
                             ylabelfontsize = 12, 
-                            linewidth=2,
+                            linewidth = 2,
                             fontfamily = "serif-roman", 
                             legend = false, 
-                            size = (700,650))
+                            size = (700, 650))
             png(plots_folder * "probs_control_" * key * ".png")
         end
 
@@ -82,36 +82,36 @@ module DMM_Plots
 
         for key in keys(probs_patient)
             prob_plot = plot(probs_patient[key], 
-                            ylabel="Estimated \n probability", 
-                            color=my_cols[3],
-                            yticks=yticks_prob,
-                            ylims=ylims_prob)
+                            ylabel = "Estimated \n probability", 
+                            color = my_cols[3],
+                            yticks = yticks_prob,
+                            ylims = ylims_prob)
             cluster_plot = plot(cluster_patient[key], 
-                            ylabel="#Clusters", 
-                            color=my_cols[3],
-                            yticks=yticks_cluster,
-                            ylims=ylims_cluster)
+                            ylabel = "#Clusters", 
+                            color = my_cols[3],
+                            yticks = yticks_cluster,
+                            ylims = ylims_cluster)
             cluster_switches_plot = scatter(cluster_switches_patient[key],
                             ylabel = "Assigned \n new cluster", 
-                            yticks=[], 
-                            color=my_cols[4],
-                            markerstrokecolor=my_cols[4],
-                            markersize=0)
-            vline!(findall(x->x==true, cluster_switches_patient[key]), color=my_cols[4])
+                            yticks = [], 
+                            color = my_cols[4],
+                            markerstrokecolor = my_cols[4],
+                            markersize = 0)
+            vline!(findall(x->x, cluster_switches_patient[key]), color = my_cols[4])
             draws_plot = scatter(draws_patient[key],
-                            xlabel="Number of drawn beads",
-                            ylabel="Bead drawn", 
+                            xlabel = "Number of drawn beads",
+                            ylabel = "Bead drawn", 
                             xlabelfontsize = 12, 
-                            color=my_cols[3], 
-                            yticks=[0, 1])
+                            color = my_cols[3], 
+                            yticks = [0, 1])
             plot(prob_plot, cluster_switches_plot, cluster_plot, draws_plot, 
                             layout = (4, 1), 
                             plot_title = "PRL Task (patient)", 
-                            plot_titlefontsize=16, 
-                            linewidth=2,
-                            fontfamily="serif-roman", 
-                            legend=false, 
-                            size=(700,650))
+                            plot_titlefontsize = 16, 
+                            linewidth = 2,
+                            fontfamily = "serif-roman", 
+                            legend = false, 
+                            size = (700, 650))
             png(plots_folder * "probs_patient_" * key * ".png")
         end
         
@@ -122,21 +122,21 @@ module DMM_Plots
                             xlabel = "Number of drawn beads",
                             ylabel = "Bead drawn", 
                             xlabelfontsize = 12, 
-                            yticks=[0, 1],
+                            yticks = [0, 1],
                             color = my_cols[3],
-                            legend=false,
-                            bottom_margin=5mm)
+                            legend = false,
+                            bottom_margin = 5mm)
             sum_switches_plot = groupedbar([sum_switches_control sum_switches_patient],
-                                            bar_position = :dodge, bar_width = 1, labels = ["control" "patient"], left_margin=5mm, 
-                                                color=[my_cols[2] my_cols[4]], fontfamily="serif-roman", xlims=[1,30], ylabel="Sum of cluster \n switches")
+                                            bar_position = :dodge, bar_width = 1, labels = ["control" "patient"], left_margin = 5mm, 
+                                                color = [my_cols[2] my_cols[4]], fontfamily = "serif-roman", xlims = [1, 30], ylabel = "Sum of cluster \n switches")
             plot(sum_switches_plot, draws_plot, 
                 layout = (2, 1), 
                 plot_title = "Number of cluster switches at drawn bead", 
                 plot_titlefontsize = 16, 
                 ylabelfontsize = 12, 
-                linewidth=2,
+                linewidth = 2,
                 fontfamily = "serif-roman", 
-                size = (800,450))
+                size = (800, 450))
             savefig(plots_folder * "sum_switches.png")
 
         end
@@ -172,7 +172,7 @@ module DMM_Plots
                         it_needed = tmp["iterations_needed_" * string(it)]
                         push!(it_tmp, it_needed)
                     end
-                    phases_reached = [count(>=(element),ph_tmp) for element in range(1,3) if element > 0] 
+                    phases_reached = [count(>=(element), ph_tmp) for element in range(1, 3) if element > 0] 
                     
                     # restructure number of iterations needed
                     iterations_tmp = []
@@ -219,33 +219,33 @@ module DMM_Plots
             end
 
             p_mean = groupedbar([mean[2] mean[1]], bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), xrotation = 25, 
-                                labels = [label2 label1], color=[my_cols[2] my_cols[4]], title = "Mean", fontfamily="serif-roman", size=(1200, 800),
-                                titlefontsize=24, tickfontsize=20, legendfontsize=20, bottommargin=6mm, leftmargin=22mm)
+                                labels = [label2 label1], color = [my_cols[2] my_cols[4]], title = "Mean", fontfamily = "serif-roman", size = (1200, 800),
+                                titlefontsize = 24, tickfontsize = 20, legendfontsize = 20, bottommargin = 6mm, leftmargin = 22mm)
             savefig(p_mean, plots_folder * "prl_urn_probs_eval_mean.png")
 
             p_median = groupedbar([median[2] median[1]], bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), xrotation = 25, 
-                                labels = [label2 label1], color=[my_cols[2] my_cols[4]], title="Median", fontfamily="serif-roman", size=(1200, 800),
-                                titlefontsize=24, tickfontsize=20, legendfontsize=20, bottommargin=6mm, leftmargin=22mm)
+                                labels = [label2 label1], color = [my_cols[2] my_cols[4]], title = "Median", fontfamily = "serif-roman", size = (1200, 800),
+                                titlefontsize = 24, tickfontsize = 20, legendfontsize = 20, bottommargin = 6mm, leftmargin = 22mm)
             savefig(p_median, plots_folder * "prl_urn_probs_eval_median.png")
             
             if method == "cools"
                 ticklabel = range(1, length(results_learning[label2 * "_reached_phase"]))
                 p_learned_phase = groupedbar([results_learning[label2 * "_reached_phase"] results_learning[label1 * "_reached_phase"]], 
                                                 bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), labels = [label2 label1], 
-                                                color=[my_cols[2] my_cols[4]], title="Correctly learned phase", fontfamily="serif-roman", 
-                                                plot_titlefontsize=16, xlabelfontsize = 12, ylabelfontsize = 12)
+                                                color = [my_cols[2] my_cols[4]], title = "Correctly learned phase", fontfamily = "serif-roman", 
+                                                plot_titlefontsize = 16, xlabelfontsize = 12, ylabelfontsize = 12)
                 savefig(p_learned_phase, plots_folder * "correctly_learned_phase.png")
 
                 p_mean_tries = groupedbar([results_learning[label2 * "_mean_iterations"] results_learning[label1 * "_mean_iterations"]], 
                                             bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), labels = [label2 label1], 
-                                            color=[my_cols[2] my_cols[4]], title="Mean tries until phase learned", fontfamily="serif-roman",
-                                            plot_titlefontsize=16, xlabelfontsize = 12, ylabelfontsize = 12)
+                                            color = [my_cols[2] my_cols[4]], title = "Mean tries until phase learned", fontfamily = "serif-roman",
+                                            plot_titlefontsize = 16, xlabelfontsize = 12, ylabelfontsize = 12)
                 savefig(p_mean_tries, plots_folder * "mean_tries.png")
 
                 p_median_tries = groupedbar([results_learning[label2 * "_median_iterations"] results_learning[label1 * "_median_iterations"]], 
                                             bar_position = :dodge, bar_width = 0.7, xticks = (1:6, ticklabel), labels = [label2 label1], 
-                                            color=[my_cols[2] my_cols[4]], title="Median tries until phase learned", fontfamily="serif-roman",
-                                            plot_titlefontsize=16, xlabelfontsize = 12, ylabelfontsize = 12)
+                                            color = [my_cols[2] my_cols[4]], title = "Median tries until phase learned", fontfamily = "serif-roman",
+                                            plot_titlefontsize = 16, xlabelfontsize = 12, ylabelfontsize = 12)
                 savefig(p_median_tries, plots_folder * "median_tries.png")
             end
         else
