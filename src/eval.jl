@@ -6,7 +6,7 @@ module Evaluation
     function evaluate_prl(method, decision_bnd = [0.5, 0.5])
         data_files = [file for file in readdir(results_folder) if startswith(file, "prl")]
 
-        model_names = unique!([split(file, '_')[2] for file in data_files]) # TODO: Not so nice
+        model_names = unique!([split(file, '_')[2] for file in data_files]) 
 
         for model_name in model_names
             filename = "prl_" * model_name
