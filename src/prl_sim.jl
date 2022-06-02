@@ -108,10 +108,8 @@ module PRL
         nk = length(xprev)
         zprev = repeat([1], nk)
 
-        # Do MCMC
-        n_iter = 1000
-        chn = DMM.do_mcmc(xprev, ones(2), target(DMM.Model()), proposal, n = n_iter)
-        theta = mean(chn.theta[round(Int, n_iter / 2):end, :], dims = 1)
+        # Initial theta
+        theta = [0.0, 2.5]
 
         push!(comps_prev, (n = nk, theta = theta))
 
