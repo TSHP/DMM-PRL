@@ -108,10 +108,8 @@ module PRL
         nk = length(xprev)
         zprev = repeat([1], nk)
 
-        # Do MCMC
-        n_iter = 1000
-        chn = DMM.do_mcmc(xprev, ones(2), target(DMM.Model()), proposal, n = n_iter)
-        theta = mean(chn.theta[round(Int, n_iter / 2):end, :], dims = 1)
+        # Initial theta
+        theta = [0.0, 10]
 
         push!(comps_prev, (n = nk, theta = theta))
 
@@ -123,7 +121,7 @@ module PRL
 
             znew, comps = DMM.init_mixture(xnew, xprev, zprev, deepcopy(comps_prev), M, target, proposal)
             x = [xprev; xnew]; z = [zprev; znew]
-
+            
             # Consolidate
             z, comps = DMM.update_mixture(x, z, comps, M; n_steps = n_steps, target, proposal)
             push!(nof_cluster_centers, length(comps))
@@ -144,24 +142,14 @@ module PRL
             lower = draw + 1 > n_history ? draw + 1 - n_history : 1
             xprev = urn_log_odds[lower:draw]
 
-            # Forget oldest observation and remove it's cluster if the cluster is empty
-            if lower > 1
-                comps[z[1]] = (n = comps[z[1]].n - 1, theta = comps[z[1]].theta)
-                if comps[z[1]].n == 0
-                    splice!(comps, z[1])
-                    # Shift all labels higher than the removed one
-                    for i in 1:length(z)
-                        if z[i] > z[1]
-                            z[i] = z[i] - 1
-                        end
-                    end
-                end
-                popfirst!(z)
-            end
+            # Strengthen most recent hypothesis by sampling n_history new observations from the hypothesis
+            d = Normal(comps[last(z)].theta[1], comps[last(z)].theta[2])
+            xprev = rand(d, n_history)
 
-            # New cluster centers are used in the next iteration as the initial clusters
-            comps_prev = deepcopy(comps)
-            zprev = deepcopy(z)
+            # Use previous hypothesis for next iteration
+            comps_prev = []
+            push!(comps_prev, (n = length(xprev), theta = comps[last(z)].theta))
+            zprev = repeat([1], length(xprev))
         end
 
         return (probs, std_devs, nof_cluster_centers, cluster_switches)
