@@ -6,11 +6,12 @@ include("./src/plot.jl")
 method = "cools"
 
 # Expected precision of control agent and patient egent respectively
-mu_tau_c = 1 / 10
-mu_tau_p = 10
+mu_tau_c = 1 / 100
+mu_tau_p = 100
 
 # Number of remembered odds
-n_history = 7
+n_history = 5
+belief_strength = 10
 
 n_runs = 100
 
@@ -21,7 +22,7 @@ M2 = Dict([("name", "control"), ("mm", 0), ("pm", 0.01), ("mp", mu_tau_c), ("pp"
 models = [M1, M2]
 
 # Run simulation
-Simulations.run_prl_sim(models, n_history, n_runs, method)
+Simulations.run_prl_sim(models, n_history, belief_strength, n_runs, method)
 
 # Run evaluation
 Evaluation.evaluate_prl(method)

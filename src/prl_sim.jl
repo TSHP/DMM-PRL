@@ -93,7 +93,7 @@ module PRL
     end
 
     # Run a phase of the experiment
-    function run_phase(M, urn_log_odds, n_history, output)
+    function run_phase(M, urn_log_odds, n_history, belief_strength, output)
         n_steps = 10
         probs = []
         std_devs = []
@@ -144,7 +144,7 @@ module PRL
 
             # Strengthen most recent hypothesis by sampling n_history new observations from the hypothesis
             d = Normal(comps[last(z)].theta[1], comps[last(z)].theta[2])
-            xprev = rand(d, n_history)
+            xprev = rand(d, belief_strength)
 
             # Use previous hypothesis for next iteration
             comps_prev = []
@@ -155,7 +155,7 @@ module PRL
         return (probs, std_devs, nof_cluster_centers, cluster_switches)
     end
 
-    function run_experiment(params, n_history, seed, method, output = false)
+    function run_experiment(params, n_history, belief_strength, seed, method, output = false)
         Random.seed!(seed)
 
         # Init model
@@ -210,7 +210,7 @@ module PRL
                 clean_log_odds!(urn_log_odds)
 
                 # Run experiment
-                probs, std_devs, nof_cluster_centers, cluster_switches = run_phase(M, urn_log_odds, n_history, output)
+                probs, std_devs, nof_cluster_centers, cluster_switches = run_phase(M, urn_log_odds, n_history, belief_strength, output)
 
                 # Update results
                 segment_length = phase == 1 && iteration == 1 ? length(draws) - 2 : length(draws)
