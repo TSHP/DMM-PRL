@@ -43,8 +43,9 @@ module DMM_Plots
             cluster_plot = plot(clusters_control[key], 
                             ylabel = "#Clusters",
                             color = my_cols[3],
-                            yticks = yticks_cluster,
-                            ylims = ylims_cluster)
+                            # yticks = yticks_cluster,
+                            # ylims = ylims_cluster
+                            )
             cluster_switches_plot = scatter(cluster_switches_control[key], 
                             ylabel = "Assigned \n new cluster", 
                             yticks = [],
@@ -89,8 +90,9 @@ module DMM_Plots
             cluster_plot = plot(cluster_patient[key], 
                             ylabel = "#Clusters", 
                             color = my_cols[3],
-                            yticks = yticks_cluster,
-                            ylims = ylims_cluster)
+                            # yticks = yticks_cluster,
+                            # ylims = ylims_cluster
+                            )
             cluster_switches_plot = scatter(cluster_switches_patient[key],
                             ylabel = "Assigned \n new cluster", 
                             yticks = [], 

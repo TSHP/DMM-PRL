@@ -5,15 +5,15 @@ include("./src/plot.jl")
 # Experiment to simulate
 method = "cools"
 
-# Expected precision of control agent and patient egent respectively
+# Expected precision of control agent and patient agent respectively
 mu_tau_c = 1 / 100
 mu_tau_p = 100
 
 # Number of remembered odds
 n_history = 5
-belief_strength = 10
+belief_strength = 100
 
-n_runs = 100
+n_runs = 50
 
 # Init model parameters
 M1 = Dict([("name", "patient"), ("mm", 0), ("pm", 0.01), ("mp", mu_tau_p), ("pp", 10), ("alpha", 1), ("m", 1.5)])
@@ -28,4 +28,4 @@ Simulations.run_prl_sim(models, n_history, belief_strength, n_runs, method)
 Evaluation.evaluate_prl(method)
 
 # Plot results
-DMM_Plots.generate_plots(method)
+DMM_Plots.generate_plots(method) 
