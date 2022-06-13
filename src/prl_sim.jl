@@ -158,9 +158,8 @@ module PRL
 
             distributions = [Normal(comps_n.theta[1], comps_n.theta[2]) for comps_n in comps]
             for (i, distr) in enumerate(distributions)
-                nof_samples = Int(round(comps[i].n/n))*belief_strength 
-                # x = rand(distr, Int(round(comps[i].n/n))*belief_strength)
-                x = rand(distr, belief_strength)
+                nof_samples = Int(round(comps[i].n/n))*belief_strength > 0 ? Int(round(comps[i].n/n))*belief_strength : 10
+                x = rand(distr, nof_samples)
                 push!(xprev_tmp, x)
                 push!(comps_prev, (n = length(x), theta = comps[i].theta))
                 push!(zprev_tmp, repeat([i], length(x)))
