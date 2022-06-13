@@ -11,6 +11,8 @@ mu_tau_p = 10
 
 # Number of remembered odds
 n_history = 5
+
+# How many samples to use for reinforcing the current hypothesis
 belief_strength = n_history
 
 n_runs = 50
