@@ -48,6 +48,7 @@ To run simulations with different parameters, change the parameters in the main.
 * `mu_tau_p`: Expected precision of the patient agent
 * `n_runs`: How many runs to simulate per agent
 * `n_history`: Models the memory of an agent. The agent will remember the last `n_history` trials.
+* `belief_stregth`: How many samples to use for reinforcing the current hypothesis.
 
 ## Support
 For questions concerning the project, please contact us at: \

@@ -5,15 +5,15 @@ include("./src/plot.jl")
 # Experiment to simulate
 method = "cools"
 
-# Expected precision of control agent and patient egent respectively
-mu_tau_c = 1 / 100
-mu_tau_p = 100
+# Expected precision of control agent and patient agent respectively
+mu_tau_c = 1
+mu_tau_p = 10
 
 # Number of remembered odds
 n_history = 5
-belief_strength = 10
+belief_strength = n_history
 
-n_runs = 100
+n_runs = 20
 
 # Init model parameters
 M1 = Dict([("name", "patient"), ("mm", 0), ("pm", 0.01), ("mp", mu_tau_p), ("pp", 10), ("alpha", 1), ("m", 1.5)])
