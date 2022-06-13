@@ -109,7 +109,7 @@ module PRL
         zprev = repeat([1], nk)
 
         # Initial theta
-        theta = [0.0, 10]
+        theta = [0.0, 2.5]
 
         push!(comps_prev, (n = nk, theta = theta))
 
