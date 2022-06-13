@@ -139,17 +139,35 @@ module PRL
             push!(std_devs, std)
 
             # Update observations and clusters for next iteration
-            lower = draw + 1 > n_history ? draw + 1 - n_history : 1
-            xprev = urn_log_odds[lower:draw]
+            # lower = draw + 1 > n_history ? draw + 1 - n_history : 1
+            # xprev = urn_log_odds[lower:draw]
 
             # Strengthen most recent hypothesis by sampling n_history new observations from the hypothesis
-            d = Normal(comps[last(z)].theta[1], comps[last(z)].theta[2])
-            xprev = rand(d, belief_strength)
+            # d = Normal(comps[last(z)].theta[1], comps[last(z)].theta[2])
+            # xprev = rand(d, belief_strength)
 
             # Use previous hypothesis for next iteration
+            # comps_prev = []
+            # push!(comps_prev, (n = length(xprev), theta = comps[last(z)].theta))
+            # zprev = repeat([1], length(xprev))
+
+            xprev_tmp = []
+            zprev_tmp = []
             comps_prev = []
-            push!(comps_prev, (n = length(xprev), theta = comps[last(z)].theta))
-            zprev = repeat([1], length(xprev))
+            n = sum([comps_n.n for comps_n in comps])
+
+            distributions = [Normal(comps_n.theta[1], comps_n.theta[2]) for comps_n in comps]
+            for (i, distr) in enumerate(distributions)
+                nof_samples = Int(round(comps[i].n/n))*belief_strength 
+                # x = rand(distr, Int(round(comps[i].n/n))*belief_strength)
+                x = rand(distr, belief_strength)
+                push!(xprev_tmp, x)
+                push!(comps_prev, (n = length(x), theta = comps[i].theta))
+                push!(zprev_tmp, repeat([i], length(x)))
+            end
+
+            xprev = vcat(xprev_tmp...)
+            zprev = vcat(zprev_tmp...)
         end
 
         return (probs, std_devs, nof_cluster_centers, cluster_switches)
