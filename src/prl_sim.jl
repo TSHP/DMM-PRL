@@ -94,7 +94,7 @@ module PRL
 
     # Run a phase of the experiment
     function run_phase(M, urn_log_odds, n_history, belief_strength, output)
-        n_steps = 10
+        n_steps = 5
         probs = []
         std_devs = []
         nof_cluster_centers = []

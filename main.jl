@@ -13,7 +13,7 @@ mu_tau_p = 10
 n_history = 5
 belief_strength = n_history
 
-n_runs = 20
+n_runs = 50
 
 # Init model parameters
 M1 = Dict([("name", "patient"), ("mm", 0), ("pm", 0.01), ("mp", mu_tau_p), ("pp", 10), ("alpha", 1), ("m", 1.5)])
